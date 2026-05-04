@@ -1,0 +1,127 @@
+/* =========================================
+   Sidebar Component Styles
+   ========================================= */
+
+.sidebar-mati {
+    position: fixed;
+    top: 64px; /* Navbar height */
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    background: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+    z-index: 1020;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-mati__nav {
+    padding: 1rem 0.75rem;
+    list-style: none;
+    margin: 0;
+}
+
+.sidebar-mati__heading {
+    padding: 0.75rem 1rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--bs-secondary);
+}
+
+.sidebar-mati__link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    margin: 0.15rem 0;
+    border-radius: 8px;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-mati__link:hover {
+    background: rgba(13, 110, 253, 0.08);
+    color: var(--bs-primary);
+}
+
+.sidebar-mati__link.active {
+    background: var(--bs-primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.sidebar-mati__link i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.sidebar-mati__badge {
+    margin-left: auto;
+    font-size: 0.7rem;
+    padding: 0.2em 0.5em;
+}
+
+/* Subscription Widget */
+.sidebar-mati__widget {
+    margin: 1.5rem 0.75rem;
+    padding: 1rem;
+    background: var(--bs-light);
+    border-radius: 10px;
+    border: 1px solid var(--bs-border-color);
+}
+
+.sidebar-mati__widget-title {
+    font-size: 0.75rem;
+    color: var(--bs-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-mati__widget-plan {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-mati__progress {
+    height: 6px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bs-border-color);
+}
+
+.sidebar-mati__progress-bar {
+    height: 100%;
+    background: var(--bs-success);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* Mobile Behavior */
+@media (max-width: 991.98px) {
+    .sidebar-mati {
+        transform: translateX(-100%);
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar-mati.show {
+        transform: translateX(0);
+    }
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1015;
+    }
+    .sidebar-overlay.show {
+        display: block;
+    }
+}

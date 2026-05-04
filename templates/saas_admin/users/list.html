@@ -1,0 +1,110 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Gestão de Utilizadores{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 fw-bold"><i class="bi bi-people me-2"></i>Utilizadores do Sistema</h2>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export-users"><i class="bi bi-download me-1"></i>Exportar</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddUser"><i class="bi bi-person-plus me-1"></i>Novo Utilizador</button>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <input type="text" class="form-control" id="filter-search" placeholder="Nome ou email..." style="max-width: 220px;">
+    <select class="form-select" id="filter-role" style="max-width: 150px;">
+        <option value="">Todas Funções</option>
+        <option value="superadmin">Super Admin</option>
+        <option value="company_admin">Admin Empresa</option>
+        <option value="operator">Operador</option>
+        <option value="viewer">Visualizador</option>
+    </select>
+    <select class="form-select" id="filter-status" style="max-width: 130px;">
+        <option value="">Status</option>
+        <option value="active">Ativo</option>
+        <option value="inactive">Inativo</option>
+    </select>
+    <button class="btn btn-outline-secondary" id="btn-clear"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="table-mati__wrapper">
+    <div id="users-table"></div>
+</div>
+
+<!-- Modal Add User -->
+<div class="modal fade" id="modalAddUser" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Adicionar Utilizador</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form id="form-add-user">
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Nome Completo</label><input type="text" name="full_name" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" name="email" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Função</label>
+                        <select name="role" class="form-select" required>
+                            <option value="operator">Operador</option>
+                            <option value="company_admin">Admin Empresa</option>
+                            <option value="viewer">Visualizador</option>
+                        </select>
+                    </div>
+                    <div class="form-check"><input class="form-check-input" type="checkbox" name="send_invite" id="sendInvite" checked><label class="form-check-label" for="sendInvite">Enviar convite por email</label></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Utilizador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { UsersAPI } from '{% static "js/api/users.js" %}';
+    import { DataTable } from '{% static "js/components/tables.js" %}';
+    import { notify } from '{% static "js/components/notifications.js" %}';
+
+    const table = new DataTable('#users-table', {
+        apiCall: p => UsersAPI.list(p),
+        columns: [
+            { field:'full_name', label:'Utilizador', render:(v,i)=>`<div class="table-mati__cell-avatar"><div class="table-mati__avatar">${v.charAt(0)}</div><div><span class="table-mati__cell-main">${v}</span><span class="table-mati__cell-sub">${i.email}</span></div></div>` },
+            { field:'role', label:'Função', format:'badge' },
+            { field:'company_name', label:'Empresa', render:v=>v||'Global' },
+            { field:'last_login', label:'Último Acesso', format:'datetime' },
+            { field:'is_active', label:'Status', render:v=>v?'<span class="badge badge-soft-success">Ativo</span>':'<span class="badge badge-soft-secondary">Inativo</span>' }
+        ],
+        actions: [
+            { name:'edit', icon:'pencil', style:'primary', handler:id=>window.location.href=`/saas-admin/users/${id}/edit/` },
+            { name:'reset', icon:'key', style:'warning', confirm:'Resetar senha?', handler:async id=>{ await UsersAPI.resetPassword(id); notify.success('Senha resetada'); } },
+            { name:'toggle', icon:'power', style:'secondary', handler:async(id,i)=>{ await UsersAPI.toggleStatus(id, !i.is_active); notify.success('Status atualizado'); table.refresh(); } }
+        ]
+    });
+
+    document.getElementById('filter-search')?.addEventListener('input', e=>table.setFilters({search:e.target.value}));
+    document.getElementById('filter-role')?.addEventListener('change', e=>table.setFilters({role:e.target.value}));
+    document.getElementById('filter-status')?.addEventListener('change', e=>table.setFilters({status:e.target.value}));
+    document.getElementById('btn-clear')?.addEventListener('click', ()=>{
+        document.querySelectorAll('.filter-bar input, .filter-bar select').forEach(el=>el.value='');
+        table.clearFilters();
+    });
+    document.getElementById('form-add-user')?.addEventListener('submit', async e=>{
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        data.send_invite = data.send_invite === 'on';
+        try {
+            await UsersAPI.create(data);
+            notify.success('Utilizador criado com sucesso!');
+            bootstrap.Modal.getInstance(document.getElementById('modalAddUser')).hide();
+            e.target.reset();
+            table.refresh();
+        } catch(err) { notify.error(err.message); }
+    });
+    document.getElementById('btn-export-users')?.addEventListener('click', async()=>{
+        try { const b=await UsersAPI.exportCSV(); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='utilizadores.csv'; a.click(); }
+        catch(e){ notify.error('Erro ao exportar'); }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% comment %}
+Modal de Confirmação de Exclusão
+Usage: Include via JS ou como template base
+{% endcomment %}
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="mb-2">
+                    Tem certeza que deseja excluir
+                    <strong id="deleteItemName"></strong>?
+                </p>
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <span id="deleteWarningText">
+                        Esta ação não pode ser desfeita.
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                    <i class="bi bi-trash me-1"></i>Excluir Permanentemente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Função para abrir modal
+function openDeleteModal(itemName, deleteUrl, warningText) {
+    document.getElementById('deleteItemName').textContent = itemName;
+    if (warningText) {
+        document.getElementById('deleteWarningText').textContent = warningText;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+
+    document.getElementById('btnConfirmDelete').onclick = function() {
+        if (deleteUrl) {
+            window.location.href = deleteUrl;
+        } else {
+            // Dispatch custom event
+            window.dispatchEvent(new CustomEvent('confirmDelete', {
+                detail: { name: itemName }
+            }));
+        }
+        modal.hide();
+    };
+
+    modal.show();
+}
+</script>

@@ -1,0 +1,115 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Detalhes: {{ company.name }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-primary text-white rounded-3 p-3 me-3 fs-3 fw-bold">
+            {{ company.name|first|upper }}
+        </div>
+        <div>
+            <h2 class="h3 fw-bold mb-1">{{ company.name }}</h2>
+            <p class="text-muted mb-0">{{ company.domain }} • {{ company.industry }}</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'saas_admin:company_edit' company.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        <button class="btn btn-danger" onclick="confirmDelete('company')">
+            <i class="bi bi-trash me-1"></i>Excluir
+        </button>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" id="companyTabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#overview">Visão Geral</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#subscription">Subscrição</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#users">Usuários</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#billing">Faturação</a></li>
+</ul>
+
+<div class="tab-content">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white">Dados da Empresa</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-4 text-muted">Email</dt><dd class="col-8">{{ company.contact_email }}</dd>
+                            <dt class="col-4 text-muted">Telefone</dt><dd class="col-8">{{ company.phone }}</dd>
+                            <dt class="col-4 text-muted">Endereço</dt><dd class="col-8">{{ company.address }}</dd>
+                            <dt class="col-4 text-muted">NIF</dt><dd class="col-8">{{ company.tax_id }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white">Estatísticas</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Usuários</span><span class="fw-bold">{{ company.users.count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Medidores</span><span class="fw-bold">{{ company.meters.count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Clientes Finais</span><span class="fw-bold">{{ company.customers.count }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Tab -->
+    <div class="tab-pane fade" id="subscription">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold">Plano Atual: {{ company.subscription.plan.name }}</h5>
+                    <span class="badge bg-success">Ativo</span>
+                </div>
+                <p class="text-muted">Renovação em: {{ company.subscription.renewal_date|date:"d/m/Y" }}</p>
+                <div class="progress mb-3" style="height: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                </div>
+                <small class="text-muted">75% do período utilizado</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div class="tab-pane fade" id="users">
+        <div class="table-responsive">
+            <table class="table table-hover bg-white shadow-sm rounded">
+                <thead>
+                    <tr><th>Nome</th><th>Email</th><th>Função</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for user in company.users.all %}
+                    <tr>
+                        <td>{{ user.get_full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role }}</td>
+                        <td><span class="badge bg-success">Ativo</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Billing Tab -->
+    <div class="tab-pane fade" id="billing">
+        <p class="text-muted text-center py-4">Histórico de faturas desta empresa.</p>
+    </div>
+</div>
+{% endblock %}

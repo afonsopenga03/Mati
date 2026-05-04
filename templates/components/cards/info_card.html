@@ -1,0 +1,64 @@
+{% comment %}
+Info Card Component
+Usage:
+{% include 'components/cards/info_card.html' with
+    title="Total de Clientes"
+    value="1,234"
+    icon="bi-people"
+    color="primary"
+    description="+12% este mês"
+    link="#"
+%}
+{% endcomment %}
+
+<div class="card h-100 border-0 shadow-sm hover-shadow">
+    <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+            <div class="flex-grow-1">
+                <p class="text-muted mb-1 small text-uppercase fw-semibold">
+                    {{ title }}
+                </p>
+                <h3 class="mb-2 fw-bold">
+                    {% if format == 'currency' %}
+                        {{ value|floatformat:2 }} Kz
+                    {% elif format == 'percent' %}
+                        {{ value|floatformat:1 }}%
+                    {% else %}
+                        {{ value|default:"-" }}
+                    {% endif %}
+                </h3>
+                {% if description %}
+                <p class="mb-0 small {% if trend == 'up' %}text-success{% elif trend == 'down' %}text-danger{% else %}text-muted{% endif %}">
+                    {% if trend_icon %}<i class="bi bi-arrow-{{ trend_icon }} me-1"></i>{% endif %}
+                    {{ description }}
+                </p>
+                {% endif %}
+            </div>
+            {% if icon %}
+            <div class="icon-box bg-{{ color|default:'primary' }}-subtle text-{{ color|default:'primary' }} rounded-3 p-3">
+                <i class="bi {{ icon }} fs-4"></i>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if link %}
+    <div class="card-footer bg-transparent border-0 pb-3">
+        <a href="{{ link }}" class="text-decoration-none small fw-semibold">
+            Ver detalhes <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1) !important;
+}
+.icon-box {
+    flex-shrink: 0;
+}
+</style>

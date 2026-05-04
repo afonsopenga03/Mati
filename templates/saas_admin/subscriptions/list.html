@@ -1,0 +1,78 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Gestão de Subscrições{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 fw-bold"><i class="bi bi-credit-card me-2"></i>Subscrições</h2>
+    <button class="btn btn-outline-primary btn-sm" id="btn-export-subs">
+        <i class="bi bi-download me-1"></i>Exportar
+    </button>
+</div>
+
+<div class="filter-bar">
+    <input type="text" class="form-control" id="filter-search" placeholder="Buscar empresa ou plano..." style="max-width: 250px;">
+    <select class="form-select" id="filter-status" style="max-width: 150px;">
+        <option value="">Todos Status</option>
+        <option value="active">Ativa</option>
+        <option value="past_due">Atrasada</option>
+        <option value="canceled">Cancelada</option>
+        <option value="trial">Trial</option>
+    </select>
+    <select class="form-select" id="filter-plan" style="max-width: 150px;">
+        <option value="">Todos Planos</option>
+        {% for plan in plans %}<option value="{{ plan.id }}">{{ plan.name }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-outline-secondary" id="btn-clear"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="table-mati__wrapper">
+    <div id="subs-table"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { SubscriptionsAPI } from '{% static "js/api/subscriptions.js" %}';
+    import { DataTable } from '{% static "js/components/tables.js" %}';
+    import { notify } from '{% static "js/components/notifications.js" %}';
+
+    const table = new DataTable('#subs-table', {
+        apiCall: (p) => SubscriptionsAPI.list(p),
+        columns: [
+            { field: 'company_name', label: 'Empresa', render: (v,i) => `<span class="fw-bold">${v}</span><br><small class="text-muted">${i.company_domain || '-'}</small>` },
+            { field: 'plan_name', label: 'Plano', format: 'badge' },
+            { field: 'status', label: 'Status', render: v => {
+                const map = { active:'success', past_due:'warning', canceled:'danger', trial:'info' };
+                return `<span class="badge badge-soft-${map[v]||'secondary'}">${v?.toUpperCase()}</span>`;
+            }},
+            { field: 'start_date', label: 'Início', format: 'date' },
+            { field: 'end_date', label: 'Fim', format: 'date' },
+            { field: 'mrr', label: 'MRR', format: 'currency' }
+        ],
+        actions: [
+            { name:'view', icon:'eye', style:'light', handler: id => window.location.href=`/saas-admin/subscriptions/${id}/` },
+            { name:'cancel', icon:'x-circle', style:'danger', confirm:'Cancelar subscrição?', handler: async id => {
+                try { await SubscriptionsAPI.cancel(id); notify.success('Cancelada'); table.refresh(); }
+                catch(e) { notify.error(e.message); }
+            }}
+        ]
+    });
+
+    document.getElementById('filter-search')?.addEventListener('input', e => table.setFilters({search: e.target.value}));
+    document.getElementById('filter-status')?.addEventListener('change', e => table.setFilters({status: e.target.value}));
+    document.getElementById('filter-plan')?.addEventListener('change', e => table.setFilters({plan: e.target.value}));
+    document.getElementById('btn-clear')?.addEventListener('click', () => {
+        document.querySelectorAll('.filter-bar input, .filter-bar select').forEach(el => el.value = '');
+        table.clearFilters();
+    });
+    document.getElementById('btn-export-subs')?.addEventListener('click', async () => {
+        try {
+            const blob = await SubscriptionsAPI.exportCSV();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'subscricoes.csv'; a.click();
+        } catch(e) { notify.error('Erro ao exportar'); }
+    });
+</script>
+{% endblock %}

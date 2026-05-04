@@ -1,0 +1,74 @@
+{% comment %}
+Componente de Paginação Reutilizável
+Usage:
+{% include 'components/pagination.html' with
+    page_obj=page_obj
+    url_name='companies:list'
+    extra_params='?status=active'
+%}
+{% endcomment %}
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação" class="mt-4">
+    <ul class="pagination justify-content-center mb-0">
+        <!-- Previous -->
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ extra_params|default:'' }}"
+               {% if not page_obj.has_previous %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+        </li>
+
+        <!-- First page -->
+        {% if page_obj.number > 3 %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{{ extra_params|default:'' }}">1</a>
+        </li>
+        {% if page_obj.number > 4 %}
+        <li class="page-item disabled">
+            <span class="page-link">...</span>
+        </li>
+        {% endif %}
+        {% endif %}
+
+        <!-- Pages around current -->
+        {% for i in page_obj.paginator.page_range %}
+            {% if i >= page_obj.number|add:'-2' and i <= page_obj.number|add:'2' %}
+            <li class="page-item {% if i == page_obj.number %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{{ extra_params|default:'' }}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Last page -->
+        {% if page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+        {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+        <li class="page-item disabled">
+            <span class="page-link">...</span>
+        </li>
+        {% endif %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ extra_params|default:'' }}">
+                {{ page_obj.paginator.num_pages }}
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- Next -->
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ extra_params|default:'' }}"
+               {% if not page_obj.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>
+                Próxima <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+
+    <!-- Pagination Info -->
+    <div class="text-center mt-2 small text-muted">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        ({{ page_obj.paginator.count }} registros)
+    </div>
+</nav>
+{% endif %}

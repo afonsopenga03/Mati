@@ -1,0 +1,109 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Subscrição #{{ sub.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Subscrição #{{ sub.id }}</h2>
+        <p class="text-muted mb-0">Empresa: <strong>{{ sub.company.name }}</strong> • Plano: {{ sub.plan.name }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if sub.status == 'active' %}
+        <button class="btn btn-outline-warning btn-sm" id="btn-pause"><i class="bi bi-pause me-1"></i>Pausar</button>
+        <button class="btn btn-outline-danger btn-sm" id="btn-cancel"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
+        {% elif sub.status == 'canceled' %}
+        <button class="btn btn-outline-success btn-sm" id="btn-reactivate"><i class="bi bi-arrow-repeat me-1"></i>Reativar</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-mati mb-4">
+            <div class="card-header">Informações da Subscrição</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">Status Atual</label>
+                        <span class="badge badge-soft-{% if sub.status == 'active' %}success{% elif sub.status == 'past_due' %}warning{% else %}danger{% endif %} fs-6">{{ sub.get_status_display }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">Próxima Renovação</label>
+                        <strong>{{ sub.renewal_date|date:"d/m/Y" }}</strong>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">Início</label>
+                        <span>{{ sub.start_date|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small d-block">MRR (Receita Recorrente)</label>
+                        <strong>{{ sub.mrr|floatformat:2 }} Kz</strong>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small d-block">Método de Pagamento</label>
+                        <span><i class="bi bi-credit-card me-1"></i>{{ sub.payment_method|default:"Não definido" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-mati">
+            <div class="card-header">Histórico de Alterações</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for log in change_logs %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold d-block">{{ log.action }}</span>
+                            <small class="text-muted">{{ log.description }}</small>
+                        </div>
+                        <small class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-4">Nenhum registro de alteração.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-mati h-100">
+            <div class="card-header">Plano Atual</div>
+            <div class="card-body text-center">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-stack fs-2"></i>
+                </div>
+                <h4 class="fw-bold">{{ sub.plan.name }}</h4>
+                <p class="text-muted">{{ sub.plan.description|truncatewords:15 }}</p>
+                <hr>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" id="btn-upgrade"><i class="bi bi-arrow-up-circle me-1"></i>Upgrade / Downgrade</button>
+                    <a href="{% url 'saas_admin:company_detail' sub.company.id %}" class="btn btn-light btn-sm"><i class="bi bi-building me-1"></i>Ir para Empresa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { SubscriptionsAPI } from '{% static "js/api/subscriptions.js" %}';
+    import { notify, confirmAction } from '{% static "js/components/notifications.js" %}';
+
+    const id = {{ sub.id }};
+    document.getElementById('btn-cancel')?.addEventListener('click', async () => {
+        if(await confirmAction('Cancelar Subscrição', 'A empresa perderá acesso aos recursos premium.')) {
+            await SubscriptionsAPI.cancel(id); notify.success('Subscrição cancelada'); location.reload();
+        }
+    });
+    document.getElementById('btn-reactivate')?.addEventListener('click', async () => {
+        if(await confirmAction('Reativar', 'Confirmar reativação desta subscrição?')) {
+            await SubscriptionsAPI.reactivate(id); notify.success('Reativada com sucesso'); location.reload();
+        }
+    });
+</script>
+{% endblock %}

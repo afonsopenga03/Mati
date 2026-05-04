@@ -1,0 +1,129 @@
+/* =========================================
+   Cards Component Styles
+   ========================================= */
+
+.card-mati {
+    border: none;
+    border-radius: var(--border-radius-lg);
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.card-mati:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.card-mati .card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.card-mati .card-body {
+    padding: 1.25rem;
+}
+
+.card-mati .card-footer {
+    background: transparent;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.25rem;
+}
+
+/* Stat Card Variant */
+.stat-card-mati {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-card-mati__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-card-mati__icon.primary { background: rgba(13, 110, 253, 0.1); color: var(--bs-primary); }
+.stat-card-mati__icon.success { background: rgba(25, 135, 84, 0.1); color: var(--bs-success); }
+.stat-card-mati__icon.warning { background: rgba(255, 193, 7, 0.1); color: var(--bs-warning); }
+.stat-card-mati__icon.danger  { background: rgba(220, 53, 69, 0.1); color: var(--bs-danger); }
+.stat-card-mati__icon.info    { background: rgba(13, 202, 240, 0.1); color: var(--bs-info); }
+
+.stat-card-mati__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.stat-card-mati__label {
+    font-size: 0.75rem;
+    color: var(--bs-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.stat-card-mati__trend {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-card-mati__trend.up   { color: var(--bs-success); }
+.stat-card-mati__trend.down { color: var(--bs-danger); }
+
+/* Info Card Variant */
+.info-card-mati {
+    position: relative;
+    padding: 1.5rem;
+}
+
+.info-card-mati__icon {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.info-card-mati__title {
+    font-size: 0.875rem;
+    color: var(--bs-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.info-card-mati__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.info-card-mati__desc {
+    font-size: 0.75rem;
+    color: var(--bs-muted);
+    margin: 0;
+}
+
+/* Responsive Grid */
+@media (max-width: 767.98px) {
+    .stat-card-mati, .info-card-mati {
+        margin-bottom: 1rem;
+    }
+}

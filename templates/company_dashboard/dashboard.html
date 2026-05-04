@@ -1,0 +1,110 @@
+{% extends 'company_dashboard/base_company.html' %}
+{% load static %}
+
+{% block company_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="h4 fw-bold">Visão Geral da Operação</h2>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        {% include 'components/cards/info_card.html' with
+            title="Consumo Mensal"
+            value=monthly_consumption
+            icon="bi-droplet"
+            color="info"
+            description="m³ consumidos"
+        %}
+    </div>
+    <div class="col-md-4">
+        {% include 'components/cards/info_card.html' with
+            title="Receita Prevista"
+            value=monthly_revenue
+            icon="bi-currency-dollar"
+            color="success"
+            description="Faturas emitidas"
+            format="currency"
+        %}
+    </div>
+    <div class="col-md-4">
+        {% include 'components/cards/info_card.html' with
+            title="Alertas Ativos"
+            value=active_alerts
+            icon="bi-exclamation-triangle"
+            color="danger"
+            description="Medidores com anomalias"
+        %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Histórico de Consumo (Últimos 6 meses)</h5>
+                <select class="form-select form-select-sm" style="width: 150px;">
+                    <option>Todas as Zonas</option>
+                    <option>Zona Norte</option>
+                    <option>Zona Sul</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="consumptionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Top Consumidores</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for meter in top_meters %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-3">
+                        <div>
+                            <span class="fw-bold d-block">{{ meter.customer_name }}</span>
+                            <small class="text-muted">Medidor #{{ meter.serial }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ meter.consumption }} m³</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Exemplo de gráfico de consumo
+    const ctx = document.getElementById('consumptionChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                datasets: [{
+                    label: 'Consumo (m³)',
+                    data: [120, 190, 300, 500, 200, 300],
+                    backgroundColor: 'rgba(13, 202, 240, 0.5)',
+                    borderColor: 'rgba(13, 202, 240, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+{% endblock %}

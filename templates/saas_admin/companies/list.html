@@ -1,0 +1,233 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Gestão de Empresas - Mati{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'saas_admin:dashboard' %}">Admin SaaS</a></li>
+        <li class="breadcrumb-item active">Empresas</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-bold">
+        <i class="bi bi-building me-2"></i>Gestão de Empresas
+    </h1>
+    <a href="{% url 'saas_admin:company_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nova Empresa
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="d-flex flex-wrap gap-2 w-100">
+        <div class="flex-grow-1" style="min-width: 200px;">
+            <input type="text" class="form-control" id="filter-search"
+                   placeholder="Buscar por nome, email ou domínio...">
+        </div>
+        <select class="form-select" id="filter-plan" style="min-width: 150px;">
+            <option value="">Todos os Planos</option>
+            <option value="free">Gratuito</option>
+            <option value="basic">Básico</option>
+            <option value="pro">Profissional</option>
+            <option value="enterprise">Enterprise</option>
+        </select>
+        <select class="form-select" id="filter-status" style="min-width: 120px;">
+            <option value="">Todos Status</option>
+            <option value="active">Ativas</option>
+            <option value="inactive">Inativas</option>
+            <option value="suspended">Suspensas</option>
+        </select>
+        <select class="form-select" id="filter-date" style="min-width: 150px;">
+            <option value="">Qualquer Data</option>
+            <option value="today">Hoje</option>
+            <option value="week">Esta Semana</option>
+            <option value="month">Este Mês</option>
+            <option value="year">Este Ano</option>
+        </select>
+        <button class="btn btn-outline-secondary" id="btn-clear-filters">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Companies Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div id="companies-full-table"></div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal fade" id="modalBulkAction" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ação em Massa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja <strong id="bulk-action-text"></strong> as empresas selecionadas?</p>
+                <div class="alert alert-warning" id="bulk-warning" style="display: none;">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Esta ação não pode ser desfeita.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-bulk">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { CompaniesAPI } from '{% static "js/api/companies.js" %}';
+    import { DataTable } from '{% static "js/components/tables.js" %}';
+    import { showToast } from '{% static "js/components/notifications.js" %}';
+
+    const companiesTable = new DataTable('#companies-full-table', {
+        apiCall: (params) => CompaniesAPI.list(params),
+        columns: [
+            {
+                field: 'name',
+                label: 'Empresa',
+                sortable: true,
+                render: (value, item) => `
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle bg-primary text-white rounded-circle me-2"
+                             style="width: 32px; height: 32px;">
+                            ${value.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">${value}</div>
+                            <small class="text-muted">${item.domain || '-'}</small>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                field: 'owner_email',
+                label: 'Responsável',
+                render: (value, item) => `
+                    <div>
+                        <div>${item.owner_name || '-'}</div>
+                        <small class="text-muted">${value}</small>
+                    </div>
+                `
+            },
+            {
+                field: 'plan',
+                label: 'Plano',
+                format: 'badge',
+                render: (value, item) => {
+                    const colors = { free: 'secondary', basic: 'info', pro: 'primary', enterprise: 'dark' };
+                    return `<span class="badge badge-soft-${colors[value] || 'secondary'}">${value?.toUpperCase() || 'FREE'}</span>`;
+                }
+            },
+            {
+                field: 'subscription_status',
+                label: 'Subscrição',
+                render: (value, item) => {
+                    const badges = {
+                        active: '<span class="badge badge-soft-success">Ativa</span>',
+                        past_due: '<span class="badge badge-soft-warning">Atrasada</span>',
+                        canceled: '<span class="badge badge-soft-danger">Cancelada</span>',
+                    };
+                    return badges[value] || '<span class="badge badge-soft-secondary">-</span>';
+                }
+            },
+            { field: 'users_count', label: 'Utilizadores' },
+            { field: 'created_at', label: 'Criado', format: 'date' },
+            {
+                field: 'is_active',
+                label: 'Status',
+                render: (value) => value ?
+                    '<span class="badge badge-soft-success"><i class="bi bi-check-circle me-1"></i>Ativa</span>' :
+                    '<span class="badge badge-soft-secondary"><i class="bi bi-x-circle me-1"></i>Inativa</span>'
+            },
+        ],
+        actions: [
+            {
+                name: 'view',
+                icon: 'eye',
+                style: 'light',
+                title: 'Ver',
+                handler: (id) => window.location.href = `/saas-admin/companies/${id}/`
+            },
+            {
+                name: 'edit',
+                icon: 'pencil',
+                style: 'primary',
+                title: 'Editar',
+                handler: (id) => window.location.href = `/saas-admin/companies/${id}/edit/`
+            },
+            {
+                name: 'toggle',
+                icon: 'power',
+                style: 'warning',
+                title: 'Ativar/Desativar',
+                confirm: 'Tem certeza que deseja alterar o status desta empresa?',
+                handler: async (id, item) => {
+                    try {
+                        await CompaniesAPI.toggleStatus(id, !item.is_active);
+                        showToast('Status atualizado com sucesso!', 'success');
+                        companiesTable.refresh();
+                    } catch (error) {
+                        showToast(error.message, 'danger');
+                    }
+                }
+            },
+            {
+                name: 'delete',
+                icon: 'trash',
+                style: 'danger',
+                title: 'Excluir',
+                confirm: '⚠️ Esta ação é IRREVERSÍVEL! Tem certeza que deseja excluir esta empresa e todos os seus dados?',
+                handler: async (id) => {
+                    try {
+                        await CompaniesAPI.delete(id);
+                        showToast('Empresa excluída com sucesso!', 'success');
+                        companiesTable.refresh();
+                    } catch (error) {
+                        showToast(error.message, 'danger');
+                    }
+                }
+            },
+        ],
+        pageSize: 25,
+    });
+
+    // Filter handlers
+    document.getElementById('filter-search')?.addEventListener('input', (e) => {
+        companiesTable.setFilters({ search: e.target.value });
+    });
+
+    document.getElementById('filter-plan')?.addEventListener('change', (e) => {
+        companiesTable.setFilters({ plan: e.target.value });
+    });
+
+    document.getElementById('filter-status')?.addEventListener('change', (e) => {
+        companiesTable.setFilters({ status: e.target.value });
+    });
+
+    document.getElementById('filter-date')?.addEventListener('change', (e) => {
+        companiesTable.setFilters({ date_range: e.target.value });
+    });
+
+    document.getElementById('btn-clear-filters')?.addEventListener('click', () => {
+        document.getElementById('filter-search').value = '';
+        document.getElementById('filter-plan').value = '';
+        document.getElementById('filter-status').value = '';
+        document.getElementById('filter-date').value = '';
+        companiesTable.clearFilters();
+    });
+</script>
+{% endblock %}

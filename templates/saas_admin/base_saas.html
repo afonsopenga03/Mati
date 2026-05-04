@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Painel SaaS - Mati{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Administração SaaS</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-bold">
+        <i class="bi bi-building me-2"></i>Administração SaaS
+    </h1>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export">
+            <i class="bi bi-download me-1"></i>Exportar
+        </button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalQuickStats">
+            <i class="bi bi-graph-up me-1"></i>Estatísticas
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="dashboard-grid mb-4">
+    {% include 'components/cards/stat_card.html' with
+        icon="bi-building"
+        value=stats.total_companies
+        label="Total Empresas"
+        trend="+12%"
+        trend_direction="up"
+        color="primary"
+    %}
+    {% include 'components/cards/stat_card.html' with
+        icon="bi-check-circle"
+        value=stats.active_companies
+        label="Ativas"
+        trend="+5%"
+        trend_direction="up"
+        color="success"
+    %}
+    {% include 'components/cards/stat_card.html' with
+        icon="bi-currency-dollar"
+        value=stats.monthly_revenue|floatformat:2
+        label="Receita Mensal"
+        trend="+18%"
+        trend_direction="up"
+        color="warning"
+        format="currency"
+    %}
+    {% include 'components/cards/stat_card.html' with
+        icon="bi-people"
+        value=stats.total_users
+        label="Utilizadores"
+        trend="+23%"
+        trend_direction="up"
+        color="info"
+    %}
+</div>
+
+<!-- Main Content Area -->
+<div class="row">
+    <!-- Companies Table -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Empresas Recentes</h5>
+                <a href="{% url 'saas_admin:companies_list' %}" class="btn btn-sm btn-outline-primary">
+                    Ver todas <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div id="companies-table"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity & Quick Actions -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="quick-actions">
+                    <a href="{% url 'saas_admin:company_create' %}" class="quick-action-btn">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Nova Empresa</span>
+                    </a>
+                    <a href="{% url 'saas_admin:plan_create' %}" class="quick-action-btn">
+                        <i class="bi bi-star"></i>
+                        <span>Novo Plano</span>
+                    </a>
+                    <a href="#" class="quick-action-btn" id="btn-send-notification">
+                        <i class="bi bi-bell"></i>
+                        <span>Notificar</span>
+                    </a>
+                    <a href="{% url 'saas_admin:billing_history' %}" class="quick-action-btn">
+                        <i class="bi bi-receipt"></i>
+                        <span>Faturas</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Atividade Recente</h5>
+            </div>
+            <div class="card-body">
+                <ul class="timeline" id="activity-timeline">
+                    <!-- Preenchido via JS -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats Modal -->
+<div class="modal fade" id="modalQuickStats" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Estatísticas Detalhadas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Crescimento de Empresas</h6>
+                        <div class="chart-container">
+                            <canvas id="chartCompaniesGrowth"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Receita por Plano</h6>
+                        <div class="chart-container">
+                            <canvas id="chartRevenueByPlan"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { api } from '{% static "js/api/client.js" %}';
+    import { CompaniesAPI } from '{% static "js/api/companies.js" %}';
+    import { DataTable } from '{% static "js/components/tables.js" %}';
+    import { initCharts } from '{% static "js/components/charts.js" %}';
+
+    // Initialize Companies Table
+    const companiesTable = new DataTable('#companies-table', {
+        apiCall: (params) => CompaniesAPI.list({ ...params, limit: 5 }),
+        columns: [
+            { field: 'name', label: 'Empresa', sortable: true },
+            { field: 'owner_email', label: 'Responsável' },
+            { field: 'plan_name', label: 'Plano', format: 'badge' },
+            { field: 'created_at', label: 'Criado', format: 'date' },
+            { field: 'is_active', label: 'Status', format: 'badge' },
+        ],
+        actions: [
+            {
+                name: 'view',
+                icon: 'eye',
+                style: 'light',
+                title: 'Ver detalhes',
+                handler: (id) => window.location.href = `/saas-admin/companies/${id}/`
+            },
+            {
+                name: 'edit',
+                icon: 'pencil',
+                style: 'primary',
+                title: 'Editar',
+                handler: (id) => window.location.href = `/saas-admin/companies/${id}/edit/`
+            },
+        ],
+    });
+
+    // Load Activity Timeline
+    async function loadActivity() {
+        try {
+            const activity = await api.get('/saas-admin/activity/');
+            const timeline = document.getElementById('activity-timeline');
+            timeline.innerHTML = activity.map(item => `
+                <li class="timeline-item ${item.type}">
+                    <div class="timeline-content">
+                        <div class="timeline-time">${item.timestamp}</div>
+                        <div class="timeline-title">${item.title}</div>
+                        <div class="timeline-desc">${item.description}</div>
+                    </div>
+                </li>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading activity:', error);
+        }
+    }
+
+    // Initialize Charts
+    document.getElementById('modalQuickStats').addEventListener('shown.bs.modal', () => {
+        initCharts();
+    });
+
+    // Export functionality
+    document.getElementById('btn-export')?.addEventListener('click', async () => {
+        try {
+            const blob = await api.get('/saas-admin/companies/export/csv/');
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'empresas_export.csv';
+            a.click();
+        } catch (error) {
+            alert('Erro ao exportar: ' + error.message);
+        }
+    });
+
+    // Initialize
+    loadActivity();
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ company.name }} - Gestão{% endblock %}
+
+{% block sidebar %}
+<!-- Override sidebar para contexto de empresa -->
+<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <div class="position-sticky pt-3">
+        <div class="text-center mb-4 px-3">
+            <h6 class="text-truncate fw-bold" title="{{ company.name }}">{{ company.name }}</h6>
+            <span class="badge bg-primary">{{ company.plan.name }}</span>
+        </div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'company_dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'company_customers' %}">
+                    <i class="bi bi-people me-2"></i> Clientes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'company_meters' %}">
+                    <i class="bi bi-gauge me-2"></i> Medidores
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'company_readings' %}">
+                    <i class="bi bi-clipboard-data me-2"></i> Leituras
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'company_billing' %}">
+                    <i class="bi bi-currency-dollar me-2"></i> Faturação
+                </a>
+            </li>
+        </ul>
+
+        <div class="mt-auto pt-4 px-3">
+            <a href="{% url 'company_settings' %}" class="btn btn-sm btn-outline-secondary w-100">
+                <i class="bi bi-gear me-1"></i> Configurações
+            </a>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Conteúdo específico da empresa aqui -->
+<div class="container-fluid">
+    {% block company_content %}{% endblock %}
+</div>
+{% endblock %}

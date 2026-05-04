@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Meu Dashboard - Mati{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Bem-vindo, {{ user.get_full_name|default:user.username }}!</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Exportar Relatório</button>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Content Grid -->
+<div class="row g-4 mb-4">
+    <!-- Stats Cards -->
+    <div class="col-md-3">
+        <div class="card bg-white shadow-sm border-0 p-3">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded">
+                    <i class="bi bi-building text-primary fs-4"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted mb-1">Minha Empresa</h6>
+                    <h4 class="mb-0 fw-bold">{{ user.company.name }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-white shadow-sm border-0 p-3">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded">
+                    <i class="bi bi-droplet-fill text-success fs-4"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted mb-1">Medidores Ativos</h6>
+                    <h4 class="mb-0 fw-bold">{{ meters_count|default:0 }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-white shadow-sm border-0 p-3">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded">
+                    <i class="bi bi-receipt text-warning fs-4"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted mb-1">Faturas Pendentes</h6>
+                    <h4 class="mb-0 fw-bold">{{ pending_invoices_count|default:0 }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-white shadow-sm border-0 p-3">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded">
+                    <i class="bi bi-calendar-check text-info fs-4"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted mb-1">Próxima Leitura</h6>
+                    <h4 class="mb-0 fw-bold small">{{ next_reading_date|date:"d/m/Y"|default:"N/A" }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Activity -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Atividade Recente</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    <ul class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold d-block">{{ activity.description }}</span>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} atrás</small>
+                            </div>
+                            <span class="badge bg-light text-dark border">{{ activity.type }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted text-center py-4">Nenhuma atividade recente registrada.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Ações Rápidas</h5>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="#" class="btn btn-outline-primary text-start"><i class="bi bi-plus-lg me-2"></i>Nova Leitura</a>
+                <a href="#" class="btn btn-outline-secondary text-start"><i class="bi bi-person-plus me-2"></i>Adicionar Cliente</a>
+                <a href="#" class="btn btn-outline-success text-start"><i class="bi bi-file-earmark-plus me-2"></i>Gerar Fatura</a>
+                <a href="#" class="btn btn-outline-dark text-start"><i class="bi bi-gear me-2"></i>Configurações</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

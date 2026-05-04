@@ -1,0 +1,53 @@
+{% extends 'saas_admin/base_saas.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0 fw-bold">Editar Empresa: {{ company.name }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nome da Empresa</label>
+                            <input type="text" name="name" class="form-control" value="{{ company.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email de Contato</label>
+                            <input type="email" name="contact_email" class="form-control" value="{{ company.contact_email }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Endereço</label>
+                            <textarea name="address" class="form-control" rows="2">{{ company.address }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Plano de Subscrição</label>
+                            <select name="plan_id" class="form-select">
+                                {% for plan in plans %}
+                                <option value="{{ plan.id }}" {% if company.subscription.plan.id == plan.id %}selected{% endif %}>
+                                    {{ plan.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select name="is_active" class="form-select">
+                                <option value="true" {% if company.is_active %}selected{% endif %}>Ativo</option>
+                                <option value="false" {% if not company.is_active %}selected{% endif %}>Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <a href="{% url 'saas_admin:company_detail' company.id %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

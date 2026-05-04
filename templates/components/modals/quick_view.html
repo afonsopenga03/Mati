@@ -1,0 +1,68 @@
+{% comment %}
+Modal de Visualização Rápida
+Usage: Para preview de registros sem sair da página
+{% endcomment %}
+
+<div class="modal fade" id="quickViewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="quickViewTitle">
+                    <i class="bi bi-eye me-2"></i>Visualização Rápida
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- Conteúdo carregado via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i>Fechar
+                </button>
+                <a href="#" class="btn btn-primary" id="btnQuickViewFull">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ver Completo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function openQuickView(url, title, fullUrl) {
+    const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+
+    document.getElementById('quickViewTitle').innerHTML =
+        `<i class="bi bi-eye me-2"></i>${title || 'Visualização'}`;
+
+    if (fullUrl) {
+        document.getElementById('btnQuickViewFull').href = fullUrl;
+        document.getElementById('btnQuickViewFull').parentElement.style.display = 'block';
+    } else {
+        document.getElementById('btnQuickViewFull').parentElement.style.display = 'none';
+    }
+
+    modal.show();
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const html = await response.text();
+        document.getElementById('quickViewContent').innerHTML = html;
+    } catch (error) {
+        document.getElementById('quickViewContent').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Erro ao carregar conteúdo: ${error.message}
+            </div>
+        `;
+    }
+}
+</script>

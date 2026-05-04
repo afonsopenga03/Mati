@@ -1,0 +1,128 @@
+{% extends 'saas_admin/base_saas.html' %}
+{% load static %}
+
+{% block title %}Editar Plano: {{ plan.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card-mati">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar Plano</h4>
+                <a href="{% url 'saas_admin:plans_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Voltar
+                </a>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="plan-edit-form" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nome do Plano *</label>
+                            <input type="text" name="name" class="form-control" value="{{ plan.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Slug/ID Interno</label>
+                            <input type="text" name="slug" class="form-control bg-light" value="{{ plan.slug }}" readonly>
+                            <small class="text-muted">Não editável após criação</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Preço Mensal (Kz) *</label>
+                            <input type="number" name="price" class="form-control" value="{{ plan.price }}" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Ciclo de Cobrança</label>
+                            <select name="billing_cycle" class="form-select">
+                                <option value="monthly" {% if plan.billing_cycle == 'monthly' %}selected{% endif %}>Mensal</option>
+                                <option value="yearly" {% if plan.billing_cycle == 'yearly' %}selected{% endif %}>Anual</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Limites & Recursos</label>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <input type="number" name="max_users" class="form-control" placeholder="Máx. Usuários" value="{{ plan.max_users }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" name="max_meters" class="form-control" placeholder="Máx. Medidores" value="{{ plan.max_meters }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="number" name="trial_days" class="form-control" placeholder="Dias de Trial" value="{{ plan.trial_days }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Features (JSON ou lista)</label>
+                            <textarea name="features" class="form-control" rows="3" placeholder='["Leituras ilimitadas", "Relatórios avançados", "Suporte prioritário"]'>{{ plan.features|safe }}</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if plan.is_active %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="isActive">Plano Ativo</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_popular" id="isPopular" {% if plan.is_popular %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="isPopular">Marcar como Popular</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}<li>{{ field }}: {{ error }}</li>{% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <a href="{% url 'saas_admin:plans_list' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary" id="btn-save-plan">
+                            <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    import { api } from '{% static "js/api/client.js" %}';
+    import { notify, withLoading } from '{% static "js/components/notifications.js" %}';
+
+    document.getElementById('plan-edit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-save-plan');
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        // Parse boolean & numbers
+        data.is_active = data.is_active === 'on';
+        data.is_popular = data.is_popular === 'on';
+        data.price = parseFloat(data.price) || 0;
+        data.max_users = parseInt(data.max_users) || 0;
+        data.max_meters = parseInt(data.max_meters) || 0;
+        data.trial_days = parseInt(data.trial_days) || 0;
+
+        try {
+            await withLoading(btn, api.patch('{% url "saas_admin:plan_detail" plan.id %}', data));
+            notify.success('Plano atualizado com sucesso!');
+            setTimeout(() => window.location.href = '{% url "saas_admin:plans_list" %}', 1000);
+        } catch (err) {
+            notify.error(err.message || 'Erro ao atualizar plano');
+        }
+    });
+</script>
+{% endblock %}
