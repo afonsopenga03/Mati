@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <h2>🔗 Teste de Integração API</h2>
+
+    <button id="btn-test" class="btn btn-primary">Testar /api/subscriptions/current/</button>
+    <pre id="output" class="mt-3 p-3 bg-light rounded"></pre>
+</div>
+
+<script type="module">
+    import { api } from '{% static "js/api/client.js" %}';
+
+    document.getElementById('btn-test').addEventListener('click', async () => {
+        const output = document.getElementById('output');
+        output.textContent = 'Carregando...';
+
+        try {
+            // Tenta com token do localStorage (se login feito)
+            const token = localStorage.getItem('auth_token');
+            if (token) api.setAuthToken(token);
+
+            const data = await api.get('/subscriptions/current/');
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+            output.textContent = `❌ Erro: ${err.message}\n\nDetalhes: ${JSON.stringify(err.data || {}, null, 2)}`;
+        }
+    });
+</script>
+{% endblock %}

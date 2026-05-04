@@ -139,6 +139,7 @@ TEMPLATES = [
         },
     },
 ]
+TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
@@ -192,7 +193,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'accounts.User'
-
+STATICFILES_DIRS = [BASE_DIR / 'static'] 
 #Configuração do JWT (SimpleJWT)
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

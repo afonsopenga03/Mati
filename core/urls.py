@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
+from django.views.generic import TemplateView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -38,5 +38,10 @@ urlpatterns = [
     # API
     path('api/', include(router.urls)),
     path('api/payments/<uuid:invoice_pk>/history/', PaymentViewSet.as_view({'get': 'by_invoice'})),
-    path('dashboard/', include('dashboard.urls')),
+  #  path('dashboard/', include('dashboard.urls')),
+    path('', TemplateView.as_view(template_name='core/home.html'), name='home'),
+    path('dashboard/', TemplateView.as_view(template_name='core/dashboard.html'), name='dashboard'),
+    path('saas-admin/', TemplateView.as_view(template_name='saas_admin/dashboard.html'), name='saas_admin_dashboard'),
+
+
 ]

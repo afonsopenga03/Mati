@@ -1,53 +1,105 @@
 {% extends 'company_dashboard/base_company.html' %}
 {% load static %}
 
-{% block company_content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2 class="h4 fw-bold">Visão Geral da Operação</h2>
+{% block title %}Dashboard - {{ request.company.name }}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active">Visão Geral</li>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h3 fw-bold mb-1">Bem-vindo, {{ request.user.first_name|default:request.user.username }}!</h2>
+        <p class="text-muted mb-0">Resumo da operação • {{ today|date:"d F Y" }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'company_readings_form' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Nova Leitura
+        </a>
+        <a href="{% url 'company_invoices_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-receipt me-1"></i>Ver Faturas
+        </a>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        {% include 'components/cards/info_card.html' with
-            title="Consumo Mensal"
-            value=monthly_consumption
-            icon="bi-droplet"
-            color="info"
-            description="m³ consumidos"
-        %}
-    </div>
-    <div class="col-md-4">
-        {% include 'components/cards/info_card.html' with
-            title="Receita Prevista"
-            value=monthly_revenue
-            icon="bi-currency-dollar"
-            color="success"
-            description="Faturas emitidas"
-            format="currency"
-        %}
-    </div>
-    <div class="col-md-4">
-        {% include 'components/cards/info_card.html' with
-            title="Alertas Ativos"
-            value=active_alerts
-            icon="bi-exclamation-triangle"
-            color="danger"
-            description="Medidores com anomalias"
-        %}
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-8">
+<!-- Stats Cards -->
+<div class="row g-4 mb-4" id="stats-cards">
+    <!-- Loading Skeleton -->
+    <div class="col-md-3">
         <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-droplet-fill text-primary fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1 small">Consumo Total</h6>
+                        <h4 class="mb-0 fw-bold skeleton-text medium">--- m³</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-receipt text-warning fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1 small">Faturas Pendentes</h6>
+                        <h4 class="mb-0 fw-bold skeleton-text medium">--- Kz</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-currency-dollar text-success fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1 small">Receita Mensal</h6>
+                        <h4 class="mb-0 fw-bold skeleton-text medium">--- Kz</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-people text-info fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1 small">Clientes Ativos</h6>
+                        <h4 class="mb-0 fw-bold skeleton-text medium">---</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Consumption Chart -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">Histórico de Consumo (Últimos 6 meses)</h5>
-                <select class="form-select form-select-sm" style="width: 150px;">
-                    <option>Todas as Zonas</option>
-                    <option>Zona Norte</option>
-                    <option>Zona Sul</option>
+                <h5 class="mb-0 fw-bold">Consumo de Água (Últimos 6 meses)</h5>
+                <select class="form-select form-select-sm" style="width: auto;" id="chart-period">
+                    <option value="6m">6 meses</option>
+                    <option value="12m">12 meses</option>
+                    <option value="ytd">Ano atual</option>
                 </select>
             </div>
             <div class="card-body">
@@ -57,23 +109,124 @@
             </div>
         </div>
     </div>
+
+    <!-- Quick Stats -->
     <div class="col-lg-4">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0 fw-bold">Top Consumidores</h5>
+                <h5 class="mb-0 fw-bold">Indicadores</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <span class="text-muted small">Média de Consumo/Cliente</span>
+                    <span class="fw-bold" id="avg-consumption">--- m³</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <span class="text-muted small">Taxa de Cobrança</span>
+                    <span class="fw-bold text-success" id="collection-rate">---%</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <span class="text-muted small">Medidores Ativos</span>
+                    <span class="fw-bold" id="active-meters">---/{{ total_meters }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Leituras Este Mês</span>
+                    <span class="fw-bold" id="readings-this-month">---</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity & Quick Actions -->
+<div class="row g-4">
+    <!-- Recent Invoices -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Faturas Recentes</h5>
+                <a href="{% url 'company_invoices_list' %}" class="btn btn-sm btn-link text-decoration-none">Ver todas</a>
             </div>
             <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for meter in top_meters %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-3">
-                        <div>
-                            <span class="fw-bold d-block">{{ meter.customer_name }}</span>
-                            <small class="text-muted">Medidor #{{ meter.serial }}</small>
-                        </div>
-                        <span class="badge bg-primary rounded-pill">{{ meter.consumption }} m³</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle" id="recent-invoices-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Valor</th>
+                                <th>Vencimento</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-invoices-body">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                                    <span class="ms-2 small text-muted">Carregando...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold">Ações Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'company_customers_form' %}" class="btn btn-outline-primary text-start">
+                        <i class="bi bi-person-plus me-2"></i>Novo Cliente
+                    </a>
+                    <a href="{% url 'company_meters_form' %}" class="btn btn-outline-success text-start">
+                        <i class="bi bi-gauge-plus me-2"></i>Novo Medidor
+                    </a>
+                    <a href="{% url 'company_readings_form' %}" class="btn btn-outline-info text-start">
+                        <i class="bi bi-clipboard-plus me-2"></i>Registrar Leitura
+                    </a>
+                    <a href="{% url 'company_invoices_list' %}?status=pending" class="btn btn-outline-warning text-start">
+                        <i class="bi bi-exclamation-circle me-2"></i>Faturas Pendentes
+                    </a>
+                    <a href="{% url 'company_payments_register' %}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-cash me-2"></i>Registrar Pagamento
+                    </a>
+                    <button type="button" class="btn btn-outline-dark text-start" id="btn-export-report">
+                        <i class="bi bi-download me-2"></i>Exportar Relatório
+                    </button>
+                </div>
+
+                <!-- Alerts -->
+                <div class="mt-4" id="alerts-container">
+                    <h6 class="text-muted small fw-semibold mb-2">Alertas</h6>
+                    <div id="alerts-list">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Readings Alert Modal -->
+<div class="modal fade" id="pendingReadingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">⚠️ Leituras Pendentes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Existem <strong id="pending-count">0</strong> medidores sem leitura este mês.</p>
+                <ul class="list-group mb-3" id="pending-meters-list"></ul>
+                <a href="{% url 'company_readings_form' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-clipboard-plus me-1"></i>Registrar Leituras
+                </a>
             </div>
         </div>
     </div>
@@ -81,30 +234,272 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Exemplo de gráfico de consumo
-    const ctx = document.getElementById('consumptionChart');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                datasets: [{
-                    label: 'Consumo (m³)',
-                    data: [120, 190, 300, 500, 200, 300],
-                    backgroundColor: 'rgba(13, 202, 240, 0.5)',
-                    borderColor: 'rgba(13, 202, 240, 1)',
-                    borderWidth: 1,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
+<script type="module">
+    import { api } from '{% static "js/api/client.js" %}';
+    import { CustomersAPI } from '{% static "js/company/api/customers.js" %}';
+    import { MetersAPI } from '{% static "js/company/api/meters.js" %}';
+    import { ReadingsAPI } from '{% static "js/company/api/readings.js" %}';
+    import { InvoicesAPI } from '{% static "js/company/api/invoices.js" %}';
+    import { formatCurrency, formatDate } from '{% static "js/company/utils/formatters.js" %}';
+    import { createConsumptionChart } from '{% static "js/company/components/charts.js" %}';
+    import { showToast } from '{% static "js/company/components/toasts.js" %}';
+
+    // ========================================================================
+    // LOAD DASHBOARD DATA
+    // ========================================================================
+
+    async function loadDashboardStats() {
+        try {
+            // Busca dados consolidados (endpoint que tu criaste no backend)
+            const stats = await api.get('/company/stats/');
+
+            // Atualiza cards
+            document.querySelector('#stats-cards .col-md-3:nth-child(1) h4').textContent =
+                `${(stats.total_consumption || 0).toLocaleString('pt-AO')} m³`;
+            document.querySelector('#stats-cards .col-md-3:nth-child(2) h4').textContent =
+                `${formatCurrency(stats.pending_invoices_total || 0)}`;
+            document.querySelector('#stats-cards .col-md-3:nth-child(3) h4').textContent =
+                `${formatCurrency(stats.monthly_revenue || 0)}`;
+            document.querySelector('#stats-cards .col-md-3:nth-child(4) h4').textContent =
+                stats.active_customers || 0;
+
+            // Atualiza indicadores
+            document.getElementById('avg-consumption').textContent =
+                `${(stats.avg_consumption_per_customer || 0).toFixed(1)} m³`;
+            document.getElementById('collection-rate').textContent =
+                `${(stats.collection_rate || 0).toFixed(1)}%`;
+            document.getElementById('active-meters').textContent =
+                `${stats.active_meters || 0}/${stats.total_meters || 0}`;
+            document.getElementById('readings-this-month').textContent =
+                stats.readings_this_month || 0;
+
+            // Remove skeleton
+            document.querySelectorAll('.skeleton-text').forEach(el => el.classList.remove('skeleton-text'));
+
+        } catch (error) {
+            console.error('Erro ao carregar stats:', error);
+            showToast('Não foi possível carregar estatísticas', 'danger');
+        }
     }
+
+    async function loadConsumptionChart(period = '6m') {
+        try {
+            const response = await api.get('/company/consumption-chart/', { period });
+            const ctx = document.getElementById('consumptionChart');
+
+            if (window.consumptionChartInstance) {
+                window.consumptionChartInstance.destroy();
+            }
+
+            window.consumptionChartInstance = createConsumptionChart(ctx, {
+                labels: response.labels,
+                values: response.values,
+                targets: response.targets
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar gráfico:', error);
+        }
+    }
+
+    async function loadRecentInvoices() {
+        try {
+            const response = await InvoicesAPI.list({ limit: 5, status: 'all' });
+            const { items } = api.parsePaginatedResponse(response);
+            const tbody = document.getElementById('recent-invoices-body');
+
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Nenhuma fatura recente</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = items.map(inv => `
+                <tr>
+                    <td>
+                        <div class="fw-semibold">${inv.customer_name || 'N/A'}</div>
+                        <small class="text-muted">#${inv.id}</small>
+                    </td>
+                    <td class="fw-bold">${formatCurrency(inv.total_amount)}</td>
+                    <td>${formatDate(inv.due_date)}</td>
+                    <td>
+                        <span class="badge ${getInvoiceStatusClass(inv.status)}">
+                            ${inv.status_display || inv.status}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="/company/invoices/${inv.id}/" class="btn btn-sm btn-light btn-icon">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+
+        } catch (error) {
+            console.error('Erro ao carregar faturas:', error);
+            document.getElementById('recent-invoices-body').innerHTML =
+                '<tr><td colspan="5" class="text-center py-4 text-danger">Erro ao carregar</td></tr>';
+        }
+    }
+
+    function getInvoiceStatusClass(status) {
+        const map = {
+            'paid': 'bg-success',
+            'pending': 'bg-warning text-dark',
+            'overdue': 'bg-danger',
+            'cancelled': 'bg-secondary'
+        };
+        return map[status] || 'bg-secondary';
+    }
+
+    async function loadAlerts() {
+        try {
+            const alerts = await api.get('/company/alerts/');
+            const container = document.getElementById('alerts-list');
+
+            if (!alerts.length) {
+                container.innerHTML = '<small class="text-muted">Nenhum alerta ativo</small>';
+                return;
+            }
+
+            // Mostra modal se houver leituras pendentes
+            const pendingReadings = alerts.filter(a => a.type === 'pending_readings');
+            if (pendingReadings.length) {
+                document.getElementById('pending-count').textContent = pendingReadings[0].count;
+                document.getElementById('pending-meters-list').innerHTML =
+                    (pendingReadings[0].meters || []).slice(0, 5).map(m =>
+                        `<li class="list-group-item small">${m.name} • ${m.code}</li>`
+                    ).join('');
+                new bootstrap.Modal(document.getElementById('pendingReadingsModal')).show();
+            }
+
+            // Renderiza outros alertas
+            container.innerHTML = alerts
+                .filter(a => a.type !== 'pending_readings')
+                .map(alert => `
+                    <div class="alert alert-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'} alert-sm py-2 mb-2">
+                        <small><i class="bi bi-${getAlertIcon(alert.type)} me-1"></i>${alert.message}</small>
+                    </div>
+                `).join('') || '<small class="text-muted">Nenhum alerta ativo</small>';
+
+        } catch (error) {
+            console.error('Erro ao carregar alertas:', error);
+        }
+    }
+
+    function getAlertIcon(type) {
+        const map = {
+            'pending_readings': 'clipboard-x',
+            'overdue_invoice': 'exclamation-circle',
+            'meter_issue': 'exclamation-triangle',
+            'low_balance': 'wallet2'
+        };
+        return map[type] || 'info-circle';
+    }
+
+    async function loadSubscriptionInfo() {
+        try {
+            const sub = await api.get('/subscriptions/current/');
+            document.getElementById('user-plan').textContent = sub.plan_name || 'Free';
+            document.getElementById('plan-status').textContent =
+                sub.status === 'active' ? 'Ativo' :
+                sub.status === 'past_due' ? 'Atrasado' : 'Inativo';
+            document.getElementById('plan-status').className =
+                `badge ${sub.status === 'active' ? 'bg-success' : sub.status === 'past_due' ? 'bg-warning text-dark' : 'bg-secondary'}`;
+        } catch (error) {
+            // Silencioso - não crítico
+        }
+    }
+
+    // ========================================================================
+    // EVENT LISTENERS
+    // ========================================================================
+
+    document.getElementById('chart-period')?.addEventListener('change', (e) => {
+        loadConsumptionChart(e.target.value);
+    });
+
+    document.getElementById('btn-export-report')?.addEventListener('click', async () => {
+        try {
+            showToast('Gerando relatório...', 'info');
+            const blob = await api.download('/company/export/report/', {}, `relatorio-${new Date().toISOString().split('T')[0]}.pdf`);
+            showToast('Relatório exportado com sucesso!', 'success');
+        } catch (error) {
+            showToast('Erro ao exportar: ' + error.message, 'danger');
+        }
+    });
+
+    // Global search (placeholder - implementar backend)
+    document.getElementById('global-search')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = e.target.querySelector('input').value;
+        if (query.length >= 3) {
+            window.location.href = `/company/search/?q=${encodeURIComponent(query)}`;
+        }
+    });
+
+    // ========================================================================
+    // INIT
+    // ========================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSubscriptionInfo();
+        loadDashboardStats();
+        loadConsumptionChart();
+        loadRecentInvoices();
+        loadAlerts();
+
+        // Auto-refresh a cada 5 minutos
+        setInterval(() => {
+            loadDashboardStats();
+            loadAlerts();
+        }, 300000);
+    });
 </script>
+
+<style>
+/* Skeleton Loading Animation */
+.skeleton-text {
+    display: inline-block;
+    height: 1.2em;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+.skeleton-text.medium { width: 70px; }
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Small Alert Variant */
+.alert-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* Sidebar Active State */
+.sidebar .nav-link {
+    color: #495057;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin: 0.1rem 0;
+}
+.sidebar .nav-link:hover {
+    background: rgba(13, 110, 253, 0.08);
+    color: #0d6efd;
+}
+.sidebar .nav-link.active {
+    background: #0d6efd;
+    color: #fff;
+}
+</style>
 {% endblock %}
