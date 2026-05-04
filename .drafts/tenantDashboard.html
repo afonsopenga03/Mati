@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaGest — Painel da Empresa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:       #060c18; --bg2: #0a1222; --card: #0d1827;
+      --card2:    #111f32; --border: #142238; --accent: #38bdf8;
+      --accent2:  #0ea5e9; --green: #34d399; --amber: #fbbf24;
+      --red:      #fb7185; --purple: #c084fc; --orange: #fb923c;
+      --text:     #e0ecf8; --muted: #4a6a8a; --dim: #1e3048;
+      --font-d:   'Syne', sans-serif; --font-b: 'DM Sans', sans-serif;
+      --font-m:   'DM Mono', monospace; --sb: 250px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: var(--font-b); background: var(--bg); color: var(--text); display: flex; }
+
+    /* SIDEBAR */
+    .sb { width:var(--sb); height:100vh; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+    .sb-top { padding:22px 18px; border-bottom:1px solid var(--border); }
+    .sb-logo { display:flex; align-items:center; gap:11px; margin-bottom:14px; }
+    .sb-icon { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+    .sb-bname { font-family:var(--font-d); font-size:1rem; font-weight:800; }
+    .sb-company { font-size:.7rem; color:var(--accent); font-weight:600; padding:3px 8px; background:rgba(56,189,248,.08); border-radius:20px; display:inline-block; }
+    .sb-section { padding:16px 14px 5px; font-size:.6rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); }
+    .sb-a { display:flex; align-items:center; gap:10px; margin:2px 8px; padding:8px 12px; border-radius:7px; color:var(--muted); text-decoration:none; font-size:.83rem; font-weight:500; cursor:pointer; transition:all .15s; }
+    .sb-a:hover { background:rgba(56,189,248,.06); color:var(--accent); }
+    .sb-a.active { background:rgba(56,189,248,.1); color:var(--accent); box-shadow:inset 3px 0 0 var(--accent); }
+    .sb-a i { font-size:.95rem; width:17px; }
+    .sb-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; padding:2px 6px; border-radius:20px; font-weight:700; }
+    .sb-foot { margin-top:auto; padding:13px 14px; border-top:1px solid var(--border); }
+    .sb-user { display:flex; align-items:center; gap:9px; }
+    .sb-av { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--accent2),var(--green)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.78rem; color:#040d1a; flex-shrink:0; }
+    .sb-un { font-weight:600; font-size:.8rem; }
+    .sb-ur { font-size:.68rem; color:var(--muted); }
+
+    /* MAIN */
+    .main { flex:1; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+    .topbar { padding:13px 26px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:rgba(6,12,24,.9); backdrop-filter:blur(10px); flex-shrink:0; }
+    .page-h { font-family:var(--font-d); font-size:1.15rem; font-weight:700; }
+    .page-bc { font-size:.72rem; color:var(--muted); }
+    .tb-acts { display:flex; gap:7px; }
+    .ico-btn { width:32px; height:32px; border-radius:7px; border:1px solid var(--border); background:var(--card); color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.85rem; transition:all .18s; text-decoration:none; }
+    .ico-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* SUBSCRIPTION ALERT */
+    .sub-alert { padding:8px 26px; font-size:.8rem; display:none; align-items:center; gap:10px; flex-shrink:0; }
+    .sub-alert.trial { background:rgba(251,191,36,.07); border-bottom:1px solid rgba(251,191,36,.2); color:var(--amber); display:flex; }
+    .sub-alert.expired { background:rgba(251,113,133,.07); border-bottom:1px solid rgba(251,113,133,.2); color:var(--red); display:flex; }
+
+    .content { flex:1; overflow-y:auto; padding:24px 26px; }
+    .page { display:none; }
+    .page.active { display:block; }
+
+    /* LAYOUT */
+    .g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .mb { margin-bottom:18px; }
+    .gap { margin-bottom:14px; }
+
+    /* CARDS */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:18px; }
+    .ct { font-family:var(--font-d); font-size:.92rem; font-weight:700; margin-bottom:3px; }
+    .cs { font-size:.72rem; color:var(--muted); }
+
+    /* KPI */
+    .kpi { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:17px; position:relative; overflow:hidden; transition:transform .2s; }
+    .kpi:hover { transform:translateY(-2px); }
+    .kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--kc,var(--accent)); border-radius:11px 11px 0 0; }
+    .kpi-i { font-size:1.5rem; margin-bottom:10px; }
+    .kpi-v { font-family:var(--font-d); font-size:1.7rem; font-weight:800; line-height:1; }
+    .kpi-l { font-size:.73rem; color:var(--muted); margin-top:3px; }
+    .kpi-d { font-size:.7rem; margin-top:9px; color:var(--muted); }
+
+    /* TABLE */
+    .tw { border-radius:9px; border:1px solid var(--border); overflow:hidden; }
+    .tbl { width:100%; border-collapse:collapse; font-family:var(--font-b); }
+    .tbl thead th { background:var(--card2); padding:9px 13px; font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+    .tbl tbody tr { border-bottom:1px solid rgba(20,34,56,.5); transition:background .13s; }
+    .tbl tbody tr:hover { background:rgba(56,189,248,.025); }
+    .tbl td { padding:10px 13px; font-size:.81rem; vertical-align:middle; }
+
+    /* BADGE */
+    .bx { padding:2px 9px; border-radius:20px; font-size:.67rem; font-weight:700; letter-spacing:.03em; display:inline-block; }
+    .ok  { background:rgba(52,211,153,.1); color:var(--green); }
+    .wa  { background:rgba(251,191,36,.1); color:var(--amber); }
+    .er  { background:rgba(251,113,133,.1); color:var(--red); }
+    .in  { background:rgba(56,189,248,.1); color:var(--accent); }
+    .dm  { background:rgba(74,106,138,.1); color:var(--muted); }
+    .pu  { background:rgba(192,132,252,.1); color:var(--purple); }
+
+    /* BUTTONS */
+    .btn { padding:8px 16px; border-radius:7px; font-family:var(--font-b); font-size:.82rem; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:all .18s; }
+    .bp { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#040d1a; }
+    .bp:hover { opacity:.88; }
+    .bg { background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--muted); }
+    .bg:hover { border-color:var(--accent); color:var(--accent); }
+    .bd { background:rgba(251,113,133,.08); border:1px solid rgba(251,113,133,.2); color:var(--red); }
+    .bs { padding:5px 11px; font-size:.75rem; }
+    .bw { background:rgba(251,191,36,.08); border:1px solid rgba(251,191,36,.2); color:var(--amber); }
+
+    /* FORM */
+    .fg { margin-bottom:14px; }
+    .fl { display:block; font-size:.7rem; font-weight:600; color:#4a7090; letter-spacing:.06em; text-transform:uppercase; margin-bottom:5px; }
+    .fc { width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:7px; padding:9px 13px; color:var(--text); font-family:var(--font-b); font-size:.85rem; outline:none; transition:border-color .2s; }
+    .fc:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(56,189,248,.1); }
+    .fc::placeholder { color:var(--muted); }
+    .fr2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .fr3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+    /* FILTER BAR */
+    .fbar { display:flex; gap:9px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+    .sw { position:relative; flex:1; min-width:160px; }
+    .sw i { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:.8rem; }
+    .si { padding-left:32px !important; }
+
+    /* MODAL */
+    .mo { position:fixed; inset:0; background:rgba(6,12,24,.88); backdrop-filter:blur(6px); z-index:2000; display:none; align-items:center; justify-content:center; padding:18px; }
+    .mo.open { display:flex; }
+    .mb2 { background:var(--card); border:1px solid var(--border); border-radius:13px; width:100%; max-width:540px; max-height:90vh; display:flex; flex-direction:column; animation:slideUp .25s ease; }
+    .mh { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .mh h3 { font-family:var(--font-d); font-size:.95rem; font-weight:700; }
+    .mc { background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.25rem; }
+    .mbdy { padding:22px; overflow-y:auto; flex:1; }
+    .mft { padding:13px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:9px; flex-shrink:0; }
+
+    /* CHART */
+    .ch { height:185px; position:relative; }
+
+    /* USAGE BAR */
+    .usage-item { margin-bottom:14px; }
+    .usage-top { display:flex; justify-content:space-between; font-size:.78rem; margin-bottom:5px; }
+    .usage-bar { height:5px; background:var(--bg2); border-radius:3px; overflow:hidden; }
+    .usage-fill { height:100%; border-radius:3px; transition:width .6s ease; }
+
+    @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    @keyframes spin    { to{transform:rotate(360deg)} }
+    .fa { animation:fadeUp .35s ease both; }
+    .d1{animation-delay:.05s} .d2{animation-delay:.1s} .d3{animation-delay:.15s} .d4{animation-delay:.2s} .d5{animation-delay:.25s} .d6{animation-delay:.3s}
+    .spin { width:20px; height:20px; border-radius:50%; border:2px solid rgba(56,189,248,.2); border-top-color:var(--accent); animation:spin .8s linear infinite; display:inline-block; }
+    ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    @media(max-width:900px) { .g4{grid-template-columns:1fr 1fr} .g3{grid-template-columns:1fr 1fr} }
+    @media(max-width:600px) { .sb{display:none} .g2,.g3,.g4{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb" id="sidebar">
+  <div class="sb-top">
+    <div class="sb-logo">
+      <div class="sb-icon">💧</div>
+      <div>
+        <div class="sb-bname">AquaGest</div>
+      </div>
+    </div>
+    <div class="sb-company" id="sb-company-name">Empresa</div>
+  </div>
+
+  <div class="sb-section">Principal</div>
+  <a class="sb-a active" data-pg="home"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+
+  <div class="sb-section">Gestão</div>
+  <a class="sb-a" data-pg="customers"><i class="bi bi-people-fill"></i> Clientes</a>
+  <a class="sb-a" data-pg="meters"><i class="bi bi-speedometer2"></i> Medidores</a>
+  <a class="sb-a" data-pg="readings"><i class="bi bi-clipboard-data"></i> Leituras</a>
+
+  <div class="sb-section">Financeiro</div>
+  <a class="sb-a" data-pg="invoices"><i class="bi bi-receipt-cutoff"></i> Faturas</a>
+  <a class="sb-a" data-pg="payments"><i class="bi bi-credit-card-2-front"></i> Pagamentos</a>
+
+  <div class="sb-section">Equipa</div>
+  <a class="sb-a" data-pg="staff"><i class="bi bi-person-badge"></i> Funcionários</a>
+  <a class="sb-a" data-pg="routes"><i class="bi bi-map"></i> Rotas</a>
+
+  <div class="sb-section">Conta</div>
+  <a class="sb-a" data-pg="subscription"><i class="bi bi-stars"></i> Subscrição</a>
+
+  <div class="sb-foot">
+    <div class="sb-user">
+      <div class="sb-av" id="sb-init">?</div>
+      <div><div class="sb-un" id="sb-name">—</div><div class="sb-ur" id="sb-role">—</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div><div class="page-h" id="ph">Dashboard</div><div class="page-bc" id="pbc">Visão geral</div></div>
+    <div class="tb-acts">
+      <button class="ico-btn" onclick="loadPage()" title="Actualizar"><i class="bi bi-arrow-clockwise"></i></button>
+      <button class="ico-btn" onclick="doLogout()" title="Sair"><i class="bi bi-box-arrow-right"></i></button>
+    </div>
+  </header>
+
+  <div class="sub-alert" id="sub-alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span id="sub-alert-msg"></span>
+    <a href="#" onclick="go('subscription')" style="color:inherit;font-weight:700;margin-left:auto;white-space:nowrap">Ver Subscrição →</a>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════ HOME ═══════ -->
+    <div class="page active" id="pg-home">
+      <div class="g4 mb fa">
+        <div class="kpi d1" style="--kc:var(--accent)">
+          <div class="kpi-i">👥</div>
+          <div class="kpi-v" id="h-customers">—</div>
+          <div class="kpi-l">Clientes Activos</div>
+        </div>
+        <div class="kpi d2" style="--kc:var(--green)">
+          <div class="kpi-i">💰</div>
+          <div class="kpi-v" id="h-revenue">—</div>
+          <div class="kpi-l">Receita Mês (MT)</div>
+        </div>
+        <div class="kpi d3" style="--kc:var(--amber)">
+          <div class="kpi-i">📄</div>
+          <div class="kpi-v" id="h-pending">—</div>
+          <div class="kpi-l">Faturas Pendentes</div>
+        </div>
+        <div class="kpi d4" style="--kc:var(--red)">
+          <div class="kpi-i">⚠️</div>
+          <div class="kpi-v" id="h-overdue">—</div>
+          <div class="kpi-l">Faturas Vencidas</div>
+        </div>
+      </div>
+      <div class="g2 mb">
+        <div class="card">
+          <div class="ct">Receita Mensal</div><div class="cs mb" style="margin-bottom:12px">Últimos 6 meses</div>
+          <div class="ch"><canvas id="ch-rev"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ct">Consumo (m³)</div><div class="cs" style="margin-bottom:12px">Por mês</div>
+          <div class="ch"><canvas id="ch-cons"></canvas></div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+            <div class="ct">Leituras Recentes</div>
+            <button class="btn bg bs" onclick="go('readings')">Ver mais</button>
+          </div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Medidor</th><th>Data</th><th>m³</th><th>Status</th></tr></thead>
+            <tbody id="h-readings"><tr><td colspan="4" style="padding:20px;text-align:center"><div class="spin"></div></td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+            <div class="ct">Faturas Recentes</div>
+            <button class="btn bg bs" onclick="go('invoices')">Ver mais</button>
+          </div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Cliente</th><th>Ref.</th><th>Valor</th><th>Status</th></tr></thead>
+            <tbody id="h-invoices"><tr><td colspan="4" style="padding:20px;text-align:center"><div class="spin"></div></td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ CUSTOMERS ═══════ -->
+    <div class="page" id="pg-customers">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Clientes</div><div class="cs" id="cust-count-lbl"></div></div>
+        <button class="btn bp" onclick="openModal('customer')"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
+      </div>
+      <div class="fbar">
+        <div class="sw"><i class="bi bi-search"></i><input type="text" class="fc si" id="cust-search" placeholder="Nome, email, documento..."></div>
+        <select class="fc" id="cust-filter-active" style="width:auto">
+          <option value="">Todos</option><option value="true">Activos</option><option value="false">Inactivos</option>
+        </select>
+        <button class="btn bg bs" onclick="loadCustomers()"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Cliente</th><th>Email</th><th>Doc.</th><th>Status</th><th>Criado</th><th>Acções</th></tr></thead>
+        <tbody id="t-customers"><tr><td colspan="6" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+      <div id="cust-pg" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.78rem;color:var(--muted)">
+        <span id="cust-pg-info"></span><div id="cust-pg-btns" style="display:flex;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ METERS ═══════ -->
+    <div class="page" id="pg-meters">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Medidores</div><div class="cs" id="meters-count-lbl"></div></div>
+        <button class="btn bp" onclick="openModal('meter')"><i class="bi bi-plus-lg"></i> Novo Medidor</button>
+      </div>
+      <div class="fbar">
+        <div class="sw"><i class="bi bi-search"></i><input type="text" class="fc si" id="meter-search" placeholder="Número de série..."></div>
+        <select class="fc" id="meter-filter-status" style="width:auto">
+          <option value="">Todos</option><option value="ACTIVE">Activo</option><option value="MAINTENANCE">Manutenção</option><option value="INACTIVE">Inactivo</option>
+        </select>
+        <button class="btn bg bs" onclick="loadMeters()"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Série</th><th>Cliente</th><th>Cidade</th><th>Instalação</th><th>Últ. Leitura</th><th>Status</th><th>Acções</th></tr></thead>
+        <tbody id="t-meters"><tr><td colspan="7" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+      <div id="meter-pg" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.78rem;color:var(--muted)">
+        <span id="meter-pg-info"></span><div id="meter-pg-btns" style="display:flex;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ READINGS ═══════ -->
+    <div class="page" id="pg-readings">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Leituras</div></div>
+        <button class="btn bp" onclick="openModal('reading')"><i class="bi bi-plus-lg"></i> Nova Leitura</button>
+      </div>
+      <!-- Anomalias alert -->
+      <div id="anomaly-alert" style="display:none;background:rgba(251,113,133,.07);border:1px solid rgba(251,113,133,.2);border-radius:8px;padding:11px 14px;font-size:.82rem;color:var(--red);margin-bottom:14px;cursor:pointer" onclick="loadReadings(1,true)">
+        <i class="bi bi-exclamation-triangle-fill"></i> <span id="anomaly-count"></span> leituras anómalas detectadas. Clique para filtrar.
+      </div>
+      <div class="fbar">
+        <div class="sw"><i class="bi bi-search"></i><input type="text" class="fc si" id="read-search" placeholder="N.º série..."></div>
+        <select class="fc" id="read-filter-anomaly" style="width:auto">
+          <option value="">Todas</option><option value="anomaly">Só anomalias</option>
+        </select>
+        <button class="btn bg bs" onclick="loadReadings()"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Medidor</th><th>Cliente</th><th>Data</th><th>Leitura (m³)</th><th>Consumo (m³)</th><th>Leiturista</th><th>Status</th></tr></thead>
+        <tbody id="t-readings"><tr><td colspan="7" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+      <div id="read-pg" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.78rem;color:var(--muted)">
+        <span id="read-pg-info"></span><div id="read-pg-btns" style="display:flex;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ INVOICES ═══════ -->
+    <div class="page" id="pg-invoices">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Faturas</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bg bs" onclick="openGenerateInvoicesModal()"><i class="bi bi-magic"></i> Gerar Faturas</button>
+          <button class="btn bp" onclick="openModal('invoice')"><i class="bi bi-plus-lg"></i> Nova Fatura</button>
+        </div>
+      </div>
+      <div class="fbar">
+        <div class="sw"><i class="bi bi-search"></i><input type="text" class="fc si" id="inv-search" placeholder="Nome do cliente..."></div>
+        <select class="fc" id="inv-filter-status" style="width:auto">
+          <option value="">Todos status</option>
+          <option value="PENDING">Pendente</option><option value="PAID">Pago</option>
+          <option value="OVERDUE">Vencido</option><option value="CANCELLED">Cancelado</option>
+        </select>
+        <button class="btn bg bs" onclick="loadInvoices()"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Cliente</th><th>Referência</th><th>Consumo</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Acções</th></tr></thead>
+        <tbody id="t-invoices"><tr><td colspan="7" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+      <div id="inv-pg" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.78rem;color:var(--muted)">
+        <span id="inv-pg-info"></span><div id="inv-pg-btns" style="display:flex;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ PAYMENTS ═══════ -->
+    <div class="page" id="pg-payments">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Pagamentos</div></div>
+        <button class="btn bp" onclick="openModal('payment')"><i class="bi bi-plus-lg"></i> Registar Pagamento</button>
+      </div>
+      <div class="fbar">
+        <select class="fc" id="pay-filter-method" style="width:auto">
+          <option value="">Todos métodos</option>
+          <option value="CASH">Dinheiro</option><option value="MPESA">M-Pesa</option>
+          <option value="EMOLA">e-Mola</option><option value="BANK_TRANSFER">Banco</option>
+        </select>
+        <select class="fc" id="pay-filter-status" style="width:auto">
+          <option value="">Todos status</option><option value="CONFIRMED">Confirmado</option><option value="REVERSED">Estornado</option>
+        </select>
+        <button class="btn bg bs" onclick="loadPayments()"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="g3 mb">
+        <div class="card" style="text-align:center"><div class="kpi-v" id="pay-total" style="font-size:1.4rem">—</div><div class="kpi-l">Total Recebido</div></div>
+        <div class="card" style="text-align:center"><div class="kpi-v" id="pay-mpesa" style="font-size:1.4rem">—</div><div class="kpi-l">Via M-Pesa</div></div>
+        <div class="card" style="text-align:center"><div class="kpi-v" id="pay-emola" style="font-size:1.4rem">—</div><div class="kpi-l">Via e-Mola</div></div>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Cliente</th><th>Fatura</th><th>Valor</th><th>Método</th><th>Referência</th><th>Data</th><th>Status</th><th>Acções</th></tr></thead>
+        <tbody id="t-payments"><tr><td colspan="8" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+      <div id="pay-pg" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.78rem;color:var(--muted)">
+        <span id="pay-pg-info"></span><div id="pay-pg-btns" style="display:flex;gap:5px"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ STAFF ═══════ -->
+    <div class="page" id="pg-staff">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Funcionários</div></div>
+        <button class="btn bp" onclick="openModal('staff')"><i class="bi bi-plus-lg"></i> Novo Funcionário</button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Nome</th><th>Username</th><th>Email</th><th>Role</th><th>Activo</th><th>Acções</th></tr></thead>
+        <tbody id="t-staff"><tr><td colspan="6" style="padding:30px;text-align:center"><div class="spin"></div></td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- ═══════ ROUTES ═══════ -->
+    <div class="page" id="pg-routes">
+      <div style="display:flex;justify-content:space-between;align-items:center" class="mb">
+        <div><div class="ct" style="font-size:1rem">Rotas de Leitura</div></div>
+        <button class="btn bp" onclick="openModal('route')"><i class="bi bi-plus-lg"></i> Nova Rota</button>
+      </div>
+      <div id="routes-grid" class="g2"></div>
+    </div>
+
+    <!-- ═══════ SUBSCRIPTION ═══════ -->
+    <div class="page" id="pg-subscription">
+      <div class="ct mb" style="font-size:1rem;margin-bottom:18px">Subscrição</div>
+      <div class="g2">
+        <div class="card" id="sub-card"><div class="spin" style="display:block;margin:20px auto"></div></div>
+        <div class="card" id="usage-card"><div class="spin" style="display:block;margin:20px auto"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="ct" style="margin-bottom:14px">Histórico de Faturas SaaS</div>
+        <div class="tw"><table class="tbl">
+          <thead><tr><th>Valor</th><th>Período</th><th>Status</th><th>Pago em</th><th>Acções</th></tr></thead>
+          <tbody id="t-sub-invoices"><tr><td colspan="5" style="padding:20px;text-align:center"><div class="spin"></div></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL -->
+<div class="mo" id="modal">
+  <div class="mb2">
+    <div class="mh"><h3 id="m-title">Modal</h3><button class="mc" onclick="closeModal()">×</button></div>
+    <div class="mbdy" id="m-body"></div>
+    <div class="mft" id="m-foot"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// API CLIENT
+// ════════════════════════════════════════════════
+const API = '/api';
+let _tok = localStorage.getItem('aq_access');
+let _ref = localStorage.getItem('aq_refresh');
+let _refreshing = false, _q = [];
+
+async function tok() {
+  if (!_tok) return null;
+  try {
+    const p = JSON.parse(atob(_tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    if (Date.now()/1000 < p.exp-30) return _tok;
+  } catch {}
+  if (_refreshing) return new Promise((r,j)=>_q.push({r,j}));
+  _refreshing = true;
+  try {
+    const res = await fetch(`${API}/auth/refresh/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refresh:_ref})});
+    if(!res.ok) throw 0;
+    const d = await res.json(); _tok=d.access; localStorage.setItem('aq_access',_tok);
+    _q.forEach(x=>x.r(_tok)); return _tok;
+  } catch { _q.forEach(x=>x.j()); localStorage.clear(); location.href='/login/'; return null; }
+  finally { _refreshing=false; _q=[]; }
+}
+
+async function http(method, url, body=null, qs=null) {
+  const t = await tok();
+  const h = {'Content-Type':'application/json'}; if(t) h['Authorization']=`Bearer ${t}`;
+  let u = url.startsWith('http')?url:`${API}${url}`;
+  if(qs){ const p=new URLSearchParams(Object.fromEntries(Object.entries(qs).filter(([,v])=>v!==null&&v!==''&&v!==undefined))); if(p.toString()) u+='?'+p; }
+  const r = await fetch(u,{method,headers:h,...(body?{body:JSON.stringify(body)}:{})});
+  if(r.status===204) return null;
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ const e=new Error(d?.detail||d?.error||'Error'); e.status=r.status; e.data=d; throw e; }
+  return d;
+}
+const G=(u,q)=>http('GET',u,null,q), P=(u,b)=>http('POST',u,b), PH=(u,b)=>http('PATCH',u,b);
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+function toast(msg,type='info'){
+  const col={success:'#34d399',error:'#fb7185',warning:'#fbbf24',info:'#38bdf8'}[type]||'#38bdf8';
+  let w=document.getElementById('T'); if(!w){w=document.createElement('div');w.id='T';w.style.cssText='position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:320px';document.body.appendChild(w);}
+  const el=document.createElement('div');
+  el.style.cssText=`background:rgba(10,18,34,.96);border:1px solid ${col}33;border-left:3px solid ${col};border-radius:8px;padding:11px 14px;color:var(--text);font-family:var(--font-b);font-size:.82rem`;
+  el.innerHTML=`<div style="display:flex;gap:9px;align-items:flex-start"><span style="color:${col}">●</span><span style="flex:1">${msg}</span><button onclick="this.closest('div').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer">×</button></div>`;
+  w.appendChild(el); setTimeout(()=>{el.style.transition='opacity .3s';el.style.opacity='0';setTimeout(()=>el.remove(),300);},3500);
+}
+
+// ════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════
+function showModal(title,body,foot='') {
+  document.getElementById('m-title').textContent=title;
+  document.getElementById('m-body').innerHTML=body;
+  document.getElementById('m-foot').innerHTML=foot;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ════════════════════════════════════════════════
+// PAGINATION
+// ════════════════════════════════════════════════
+function pager(infoId,btnsId,total,page,ps,fn){
+  const tp=Math.ceil(total/ps),s=(page-1)*ps+1,e=Math.min(page*ps,total);
+  document.getElementById(infoId).textContent=total?`${s}–${e} de ${total}`:'0';
+  const W=document.getElementById(btnsId);
+  const bs=a=>`background:${a?'linear-gradient(135deg,#38bdf8,#0ea5e9)':'#0d1827'};border:1px solid ${a?'transparent':'#142238'};border-radius:5px;padding:4px 9px;color:${a?'#040d1a':'#4a6a8a'};font-size:.74rem;cursor:pointer`;
+  const ps2=[...new Set([1,...[page-1,page,page+1].filter(x=>x>1&&x<tp),tp])].filter(x=>x>=1&&x<=tp);
+  W.innerHTML=`<button ${page<=1?'disabled':''} onclick="${fn}(${page-1})" style="${bs(false)};${page<=1?'opacity:.35':''}">‹</button>`+
+    ps2.map((p,i,arr)=>(i>0&&p-arr[i-1]>1?`<span style="color:var(--muted);padding:0 3px">…</span>`:'')+`<button onclick="${fn}(${p})" style="${bs(p===page)}">${p}</button>`).join('')+
+    `<button ${page>=tp?'disabled':''} onclick="${fn}(${page+1})" style="${bs(false)};${page>=tp?'opacity:.35':''}">›</button>`;
+}
+
+// ════════════════════════════════════════════════
+// FORMATTERS
+// ════════════════════════════════════════════════
+const fd=d=>d?new Date(d).toLocaleDateString('pt-BR'):'—';
+const fm=v=>v!=null?`MT ${Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—';
+function sbx(s){
+  return {ACTIVE:'<span class="bx ok">Activo</span>',INACTIVE:'<span class="bx dm">Inactivo</span>',PAID:'<span class="bx ok">Pago</span>',PENDING:'<span class="bx wa">Pendente</span>',OVERDUE:'<span class="bx er">Vencido</span>',CANCELLED:'<span class="bx dm">Cancelado</span>',CONFIRMED:'<span class="bx ok">Confirmado</span>',REVERSED:'<span class="bx er">Estornado</span>',MAINTENANCE:'<span class="bx pu">Manutenção</span>',TRIAL:'<span class="bx in">Trial</span>',SUSPENDED:'<span class="bx er">Suspenso</span>',EXPIRED:'<span class="bx er">Expirado</span>'}[s]||`<span class="bx dm">${s}</span>`;
+}
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+const PAGE_INFO={home:{h:'Dashboard',bc:'Visão geral'},customers:{h:'Clientes',bc:'Gestão → Clientes'},meters:{h:'Medidores',bc:'Gestão → Medidores'},readings:{h:'Leituras',bc:'Gestão → Leituras'},invoices:{h:'Faturas',bc:'Financeiro → Faturas'},payments:{h:'Pagamentos',bc:'Financeiro → Pagamentos'},staff:{h:'Funcionários',bc:'Equipa → Funcionários'},routes:{h:'Rotas',bc:'Equipa → Rotas'},subscription:{h:'Subscrição',bc:'Conta → Subscrição'}};
+let curPage='home';
+
+function go(pg){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-a').forEach(a=>a.classList.remove('active'));
+  document.getElementById(`pg-${pg}`)?.classList.add('active');
+  document.querySelector(`.sb-a[data-pg="${pg}"]`)?.classList.add('active');
+  const m=PAGE_INFO[pg]||{h:pg,bc:''};
+  document.getElementById('ph').textContent=m.h;
+  document.getElementById('pbc').textContent=m.bc;
+  curPage=pg; loadPage();
+}
+
+function loadPage(){
+  const fn={home:loadHome,customers:loadCustomers,meters:loadMeters,readings:loadReadings,invoices:loadInvoices,payments:loadPayments,staff:loadStaff,routes:loadRoutes,subscription:loadSubscription};
+  fn[curPage]?.();
+}
+
+document.querySelectorAll('.sb-a[data-pg]').forEach(a=>a.addEventListener('click',()=>go(a.dataset.pg)));
+
+// ════════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════════
+let chRev, chCons;
+async function loadHome(){
+  try{
+    const [custD,invSum,paySum] = await Promise.all([
+      G('/customers/',{page_size:1}),
+      G('/invoices/summary/'),
+      G('/payments/summary/'),
+    ]);
+    document.getElementById('h-customers').textContent=custD?.count||0;
+    const sum=Array.isArray(invSum)?invSum:[];
+    const paid=sum.find(x=>x.status==='PAID');
+    const pending=sum.find(x=>x.status==='PENDING');
+    const overdue=sum.find(x=>x.status==='OVERDUE');
+    document.getElementById('h-revenue').textContent=paid?.total_amount?`${Number(paid.total_amount).toLocaleString('pt-BR',{maximumFractionDigits:0})}`:'0';
+    document.getElementById('h-pending').textContent=pending?.count||0;
+    document.getElementById('h-overdue').textContent=overdue?.count||0;
+
+    buildChart('ch-rev','line',['Nov','Dez','Jan','Fev','Mar','Abr'],[1200,2100,1800,3400,2900,4100],'#34d399');
+    buildChart('ch-cons','bar',['Nov','Dez','Jan','Fev','Mar','Abr'],[4200,5100,3800,6200,5400,7100],'#38bdf8');
+
+    // Recent readings
+    const readD=await G('/meters/anomalies/',{page_size:5}).catch(()=>({results:[]}));
+    const allRead=await G('/meters/',{page_size:1}).then(()=>null).catch(()=>null); // just placeholder
+
+    // Recent invoices
+    const invD=await G('/invoices/',{page_size:6,ordering:'-created_at'});
+    const tInv=document.getElementById('h-invoices');
+    tInv.innerHTML=(invD?.results||[]).map(i=>`<tr><td>${i.customer_name}</td><td>${i.reference_month?.toString().padStart(2,'0')}/${i.reference_year}</td><td style="font-family:var(--font-m)">${fm(i.total_amount)}</td><td>${sbx(i.status)}</td></tr>`).join('')||`<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Sem faturas</td></tr>`;
+
+    document.getElementById('h-readings').innerHTML=`<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--muted)"><i>Carregue a página de Leituras para ver o histórico completo.</i></td></tr>`;
+  }catch(e){toast('Erro dashboard: '+e.message,'error');}
+}
+
+function buildChart(id,type,labels,data,color){
+  const ctx=document.getElementById(id).getContext('2d');
+  const prev=Chart.getChart(id); if(prev) prev.destroy();
+  const grad=ctx.createLinearGradient(0,0,0,185);
+  grad.addColorStop(0,color+'33'); grad.addColorStop(1,color+'00');
+  new Chart(ctx,{type,data:{labels,datasets:[{label:'',data,borderColor:color,backgroundColor:type==='line'?grad:color+'55',borderWidth:2,borderRadius:type==='bar'?5:0,pointRadius:3,tension:.4,fill:type==='line'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d1827',borderColor:'#142238',borderWidth:1}},
+      scales:{x:{grid:{color:'rgba(20,34,56,.5)'}},y:{grid:{color:'rgba(20,34,56,.5)'},ticks:{maxTicksLimit:4}}}}});
+}
+
+// ════════════════════════════════════════════════
+// CUSTOMERS
+// ════════════════════════════════════════════════
+let custPage=1;
+async function loadCustomers(page=1){
+  custPage=page;
+  const tb=document.getElementById('t-customers');
+  tb.innerHTML=`<tr><td colspan="6" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    const d=await G('/customers/',{page,page_size:15,search:document.getElementById('cust-search').value,is_active:document.getElementById('cust-filter-active').value});
+    document.getElementById('cust-count-lbl').textContent=`${d.count} clientes`;
+    tb.innerHTML=(d.results||[]).map(c=>`<tr>
+      <td><div style="font-weight:600">${c.full_name||c.first_name+' '+c.last_name}</div></td>
+      <td style="font-size:.8rem">${c.email||'—'}</td>
+      <td style="font-family:var(--font-m);font-size:.78rem">${c.document_id}</td>
+      <td>${sbx(c.is_active?'ACTIVE':'INACTIVE')}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fd(c.created_at)}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn bg bs" onclick='openEditCustomer(${JSON.stringify(c).replace(/'/g,"\\'")})'><i class="bi bi-pencil"></i></button>
+        ${c.is_active?`<button class="btn bd bs" onclick="deactivateCustomer('${c.id}')"><i class="bi bi-slash-circle"></i></button>`:''}
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted)">Sem clientes.</td></tr>`;
+    pager('cust-pg-info','cust-pg-btns',d.count,page,15,'loadCustomers');
+  }catch(e){tb.innerHTML=`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+// ════════════════════════════════════════════════
+// METERS
+// ════════════════════════════════════════════════
+let meterPage=1;
+async function loadMeters(page=1){
+  meterPage=page;
+  const tb=document.getElementById('t-meters');
+  tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    const d=await G('/meters/',{page,page_size:15,search:document.getElementById('meter-search').value,status:document.getElementById('meter-filter-status').value});
+    document.getElementById('meters-count-lbl').textContent=`${d.count} medidores`;
+    tb.innerHTML=(d.results||[]).map(m=>`<tr>
+      <td style="font-family:var(--font-m);font-weight:600">${m.serial_number}</td>
+      <td style="font-size:.8rem">${m.address_detail?.customer?.name||m.customer_name||'—'}</td>
+      <td style="font-size:.8rem">${m.address_detail?.city||'—'}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fd(m.installation_date)}</td>
+      <td style="font-family:var(--font-m);font-size:.8rem">${m.last_reading?m.last_reading.value+' m³':'—'}</td>
+      <td>${sbx(m.status)}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn bg bs" onclick="openAddReading('${m.id}','${m.serial_number}')"><i class="bi bi-plus-circle"></i> Leitura</button>
+        ${m.status==='ACTIVE'?`<button class="btn bw bs" onclick="setMeterMaintenance('${m.id}')"><i class="bi bi-tools"></i></button>`:`<button class="btn bg bs" onclick="setMeterActive('${m.id}')"><i class="bi bi-check-circle"></i></button>`}
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">Sem medidores.</td></tr>`;
+    pager('meter-pg-info','meter-pg-btns',d.count,page,15,'loadMeters');
+  }catch(e){tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+async function setMeterMaintenance(id){ try{ await P(`/meters/${id}/set-maintenance/`); toast('Medidor em manutenção','warning'); loadMeters(meterPage); }catch(e){toast(e.message,'error');} }
+async function setMeterActive(id){ try{ await P(`/meters/${id}/set-active/`); toast('Medidor reactivado','success'); loadMeters(meterPage); }catch(e){toast(e.message,'error');} }
+
+function openAddReading(meterId, serial){
+  showModal(`Leitura — ${serial}`,`
+    <div class="fg"><label class="fl">Valor da Leitura (m³) *</label><input id="r-value" type="number" step="0.001" class="fc" required placeholder="Ex: 1234.567"></div>
+    <div class="fg"><label class="fl">Data e Hora *</label><input id="r-date" type="datetime-local" class="fc" value="${new Date().toISOString().slice(0,16)}"></div>
+    <div class="fg"><label class="fl">Notas</label><textarea id="r-notes" class="fc" rows="2" placeholder="Observações..."></textarea></div>
+  `,`<button class="btn bg bs" onclick="closeModal()">Cancelar</button>
+     <button class="btn bp bs" onclick="submitReading('${meterId}')"><i class="bi bi-check-lg"></i> Registar</button>`);
+}
+
+async function submitReading(meterId){
+  const val=document.getElementById('r-value').value, dt=document.getElementById('r-date').value;
+  if(!val||!dt){ toast('Preencha todos os campos','warning'); return; }
+  try{
+    await P(`/meters/${meterId}/readings/`,{reading_value:parseFloat(val),reading_date:new Date(dt).toISOString()});
+    toast('Leitura registada!','success'); closeModal(); loadReadings();
+  }catch(e){ toast(e.data?.error||e.message,'error'); }
+}
+
+// ════════════════════════════════════════════════
+// READINGS
+// ════════════════════════════════════════════════
+async function loadReadings(page=1,anomalyOnly=false){
+  const tb=document.getElementById('t-readings');
+  tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    // Check anomalies count
+    const anD=await G('/meters/anomalies/',{page_size:1}).catch(()=>({count:0}));
+    const ac=anD.count||0;
+    const alert=document.getElementById('anomaly-alert');
+    if(ac>0){ alert.style.display='block'; document.getElementById('anomaly-count').textContent=ac; }
+    else alert.style.display='none';
+
+    // Load all meters for reading list (simplified)
+    const metersD=await G('/meters/',{page,page_size:20});
+    const rows=[];
+    for(const m of (metersD.results||[]).slice(0,10)){
+      const lastR=m.last_reading;
+      if(lastR) rows.push({serial:m.serial_number,date:lastR.date,value:lastR.value,anomaly:false});
+    }
+    tb.innerHTML=rows.map(r=>`<tr>
+      <td style="font-family:var(--font-m)">${r.serial}</td>
+      <td>—</td>
+      <td style="font-size:.8rem">${fd(r.date)}</td>
+      <td style="font-family:var(--font-m)">${r.value}</td>
+      <td>—</td><td>—</td>
+      <td>${r.anomaly?'<span class="bx er">Anomalia</span>':'<span class="bx ok">Normal</span>'}</td>
+    </tr>`).join('')||`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">Sem leituras.</td></tr>`;
+    pager('read-pg-info','read-pg-btns',metersD.count,page,20,'loadReadings');
+  }catch(e){tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+// ════════════════════════════════════════════════
+// INVOICES
+// ════════════════════════════════════════════════
+let invPage=1;
+async function loadInvoices(page=1){
+  invPage=page;
+  const tb=document.getElementById('t-invoices');
+  tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    const d=await G('/invoices/',{page,page_size:15,search:document.getElementById('inv-search').value,status:document.getElementById('inv-filter-status').value});
+    tb.innerHTML=(d.results||[]).map(i=>`<tr>
+      <td style="font-weight:600">${i.customer_name}</td>
+      <td style="font-family:var(--font-m);font-size:.8rem">${String(i.reference_month).padStart(2,'0')}/${i.reference_year}</td>
+      <td style="font-size:.8rem">${i.consumption_m3} m³</td>
+      <td style="font-family:var(--font-m);font-weight:600">${fm(i.total_amount)}</td>
+      <td style="font-size:.8rem;color:${new Date(i.due_date)<new Date()&&i.status==='PENDING'?'var(--red)':'var(--muted)'}">${fd(i.due_date)}</td>
+      <td>${sbx(i.status)}</td>
+      <td><div style="display:flex;gap:5px">
+        ${i.status==='PENDING'||i.status==='OVERDUE'?`<button class="btn bp bs" onclick="quickPay('${i.id}','${i.customer_name}',${i.total_amount})"><i class="bi bi-cash"></i> Pagar</button>`:''}
+        ${i.status!=='CANCELLED'&&i.status!=='PAID'?`<button class="btn bd bs" onclick="cancelInvoice('${i.id}')"><i class="bi bi-x-circle"></i></button>`:''}
+      </div></td>
+    </tr>`).join('')||`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">Sem faturas.</td></tr>`;
+    pager('inv-pg-info','inv-pg-btns',d.count,page,15,'loadInvoices');
+  }catch(e){tb.innerHTML=`<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+async function cancelInvoice(id){
+  if(!confirm('Cancelar esta fatura?')) return;
+  try{ await P(`/invoices/${id}/cancel/`); toast('Fatura cancelada','success'); loadInvoices(invPage); }catch(e){toast(e.message,'error');}
+}
+
+function quickPay(invId,custName,total){
+  showModal(`Registar Pagamento — ${custName}`,`
+    <div class="fg" style="background:var(--bg2);border-radius:7px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--muted);font-size:.82rem">Valor total da fatura</span>
+      <span style="font-family:var(--font-m);font-weight:700;color:var(--green)">${fm(total)}</span>
+    </div>
+    <div class="fg"><label class="fl">Valor a Pagar *</label><input id="qp-amount" type="number" step="0.01" class="fc" value="${total}" required></div>
+    <div class="fg"><label class="fl">Método *</label>
+      <select id="qp-method" class="fc">
+        <option value="CASH">💵 Dinheiro</option>
+        <option value="MPESA">📱 M-Pesa</option>
+        <option value="EMOLA">📲 e-Mola</option>
+        <option value="BANK_TRANSFER">🏦 Transferência</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Referência/N.º Transacção</label><input id="qp-ref" class="fc" placeholder="Ex: T12345678"></div>
+  `,`<button class="btn bg bs" onclick="closeModal()">Cancelar</button>
+     <button class="btn bp bs" onclick="submitQuickPay('${invId}')"><i class="bi bi-check-lg"></i> Confirmar</button>`);
+}
+
+async function submitQuickPay(invId){
+  const amount=parseFloat(document.getElementById('qp-amount').value);
+  const method=document.getElementById('qp-method').value;
+  const ref=document.getElementById('qp-ref').value;
+  if(!amount||amount<=0){ toast('Valor inválido','warning'); return; }
+  try{
+    await P('/payments/',{invoice:invId,amount_paid:amount,method,transaction_id:ref||undefined,payment_date:new Date().toISOString()});
+    toast('Pagamento registado com sucesso!','success'); closeModal(); loadInvoices(invPage);
+  }catch(e){ toast(e.data?.error||e.message,'error'); }
+}
+
+function openGenerateInvoicesModal(){
+  const now=new Date();
+  showModal('Gerar Faturas',`
+    <div style="background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:8px;padding:12px;margin-bottom:16px;font-size:.82rem;color:#38bdf8">
+      <i class="bi bi-info-circle"></i> Gera faturas automáticas com base nas leituras do período seleccionado.
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Mês *</label>
+        <select id="gen-month" class="fc">
+          ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].map((m,i)=>`<option value="${i+1}" ${i+1===now.getMonth()?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Ano *</label><input id="gen-year" type="number" class="fc" value="${now.getFullYear()}"></div>
+    </div>
+  `,`<button class="btn bg bs" onclick="closeModal()">Cancelar</button>
+     <button class="btn bp bs" onclick="submitGenerateInvoices()"><i class="bi bi-magic"></i> Gerar</button>`);
+}
+
+async function submitGenerateInvoices(){
+  const m=parseInt(document.getElementById('gen-month').value);
+  const y=parseInt(document.getElementById('gen-year').value);
+  try{
+    const r=await P('/invoices/generate/',{reference_month:m,reference_year:y});
+    toast(`${r.created} faturas geradas, ${r.skipped} ignoradas.${r.errors?.length?` ${r.errors.length} erros.`:''}`, r.errors?.length?'warning':'success');
+    closeModal(); loadInvoices();
+  }catch(e){ toast(e.message,'error'); }
+}
+
+// ════════════════════════════════════════════════
+// PAYMENTS
+// ════════════════════════════════════════════════
+let payPage=1;
+async function loadPayments(page=1){
+  payPage=page;
+  const tb=document.getElementById('t-payments');
+  tb.innerHTML=`<tr><td colspan="8" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    const [d,sum]=await Promise.all([
+      G('/payments/',{page,page_size:15,method:document.getElementById('pay-filter-method').value,status:document.getElementById('pay-filter-status').value}),
+      G('/payments/summary/'),
+    ]);
+    const total=sum?.total_confirmed?.amount||0;
+    const mpesa=(sum?.by_method||[]).find(x=>x.method==='MPESA')?.total||0;
+    const emola=(sum?.by_method||[]).find(x=>x.method==='EMOLA')?.total||0;
+    document.getElementById('pay-total').textContent=fm(total);
+    document.getElementById('pay-mpesa').textContent=fm(mpesa);
+    document.getElementById('pay-emola').textContent=fm(emola);
+    const mLabel={'CASH':'💵 Dinheiro','MPESA':'📱 M-Pesa','EMOLA':'📲 e-Mola','BANK_TRANSFER':'🏦 Banco','CHEQUE':'📄 Cheque','OTHER':'Outro'};
+    tb.innerHTML=(d.results||[]).map(p=>`<tr>
+      <td style="font-weight:600">${p.invoice_info?.customer||'—'}</td>
+      <td style="font-family:var(--font-m);font-size:.78rem">${p.invoice_info?.reference||'—'}</td>
+      <td style="font-family:var(--font-m);font-weight:600">${fm(p.amount_paid)}</td>
+      <td>${mLabel[p.method]||p.method}</td>
+      <td style="font-family:var(--font-m);font-size:.78rem">${p.transaction_id||'—'}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fd(p.payment_date)}</td>
+      <td>${sbx(p.status)}</td>
+      <td>${p.status==='CONFIRMED'?`<button class="btn bd bs" onclick="reversePayment('${p.id}')"><i class="bi bi-arrow-counterclockwise"></i> Estornar</button>`:''}</td>
+    </tr>`).join('')||`<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--muted)">Sem pagamentos.</td></tr>`;
+    pager('pay-pg-info','pay-pg-btns',d.count,page,15,'loadPayments');
+  }catch(e){tb.innerHTML=`<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+async function reversePayment(id){
+  const reason=prompt('Motivo do estorno (mínimo 10 caracteres):');
+  if(!reason||reason.length<10){ toast('Motivo muito curto','warning'); return; }
+  try{ await P(`/payments/${id}/reverse/`,{reason}); toast('Pagamento estornado','success'); loadPayments(payPage); }catch(e){toast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════
+// STAFF
+// ════════════════════════════════════════════════
+async function loadStaff(){
+  const tb=document.getElementById('t-staff');
+  tb.innerHTML=`<tr><td colspan="6" style="padding:24px;text-align:center"><div class="spin"></div></td></tr>`;
+  try{
+    const d=await G('/users/',{page_size:50});
+    const roles={ADMIN:'<span class="bx er">Admin</span>',CLERK:'<span class="bx in">Atendente</span>',READER:'<span class="bx wa">Leiturista</span>',CUSTOMER:'<span class="bx dm">Cliente</span>'};
+    tb.innerHTML=(d.results||[]).map(u=>`<tr>
+      <td><div style="font-weight:600">${u.first_name||'—'} ${u.last_name||''}</div></td>
+      <td style="font-family:var(--font-m);font-size:.8rem">${u.username}</td>
+      <td style="font-size:.8rem">${u.email||'—'}</td>
+      <td>${roles[u.role]||u.role}</td>
+      <td>${u.is_active?'<span class="bx ok">Sim</span>':'<span class="bx dm">Não</span>'}</td>
+      <td><button class="btn bg bs" onclick='editStaff(${JSON.stringify(u).replace(/'/g,"\\'")})'><i class="bi bi-pencil"></i></button></td>
+    </tr>`).join('')||`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted)">Sem funcionários.</td></tr>`;
+  }catch(e){tb.innerHTML=`<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--red)">${e.message}</td></tr>`;}
+}
+
+// ════════════════════════════════════════════════
+// ROUTES
+// ════════════════════════════════════════════════
+async function loadRoutes(){
+  const grid=document.getElementById('routes-grid');
+  grid.innerHTML=`<div style="text-align:center;padding:24px;grid-column:1/-1"><div class="spin"></div></div>`;
+  try{
+    const d=await G('/routes/',{page_size:20});
+    grid.innerHTML=(d.results||[]).map(r=>`
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:var(--font-d);font-weight:700">${r.name}</div>
+          <span class="bx ${r.is_active?'ok':'dm'}">${r.is_active?'Activa':'Inactiva'}</span>
+        </div>
+        <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px">${r.description||'Sem descrição'}</div>
+        <div style="display:flex;justify-content:space-between;font-size:.8rem">
+          <span><i class="bi bi-person" style="color:var(--accent)"></i> ${r.assigned_to_name||'—'}</span>
+          <span><i class="bi bi-geo-alt" style="color:var(--accent)"></i> ${r.stop_count} paragens</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="btn bp bs" onclick="generateRouteTasks('${r.id}')"><i class="bi bi-lightning-fill"></i> Gerar Tarefas</button>
+          <button class="btn bg bs" onclick="viewRoute('${r.id}')"><i class="bi bi-eye"></i> Ver Rota</button>
+        </div>
+      </div>
+    `).join('')||`<div style="text-align:center;padding:40px;color:var(--muted);grid-column:1/-1">Sem rotas criadas.</div>`;
+  }catch(e){grid.innerHTML=`<div style="text-align:center;padding:24px;color:var(--red);grid-column:1/-1">${e.message}</div>`;}
+}
+
+async function generateRouteTasks(id){
+  try{
+    const r=await G(`/routes/${id}/generate-tasks/`,{date:new Date().toISOString().split('T')[0]});
+    toast(`${r.tasks_created} tarefas geradas para hoje!`,'success');
+  }catch(e){toast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════
+// SUBSCRIPTION
+// ════════════════════════════════════════════════
+async function loadSubscription(){
+  try{
+    const [sub,usage]=await Promise.all([G('/subscriptions/current/'),G('/subscriptions/usage/')]);
+    const planColors={'TRIAL':'#38bdf8','BASIC':'#34d399','PRO':'#fbbf24','ENTERPRISE':'#c084fc'};
+    const col=planColors[sub.plan]||'#38bdf8';
+    document.getElementById('sub-card').innerHTML=`
+      <div style="height:3px;background:${col};border-radius:11px 11px 0 0;margin:-18px -18px 18px"></div>
+      <div style="font-family:var(--font-d);font-size:1.2rem;font-weight:800;margin-bottom:4px">${sub.plan_name}</div>
+      <div style="margin-bottom:16px">${sbx(sub.status)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.82rem">
+        <div style="background:var(--bg2);border-radius:7px;padding:10px"><div style="color:var(--muted);font-size:.7rem">Início</div><div style="margin-top:2px">${fd(sub.started_at)}</div></div>
+        <div style="background:var(--bg2);border-radius:7px;padding:10px"><div style="color:var(--muted);font-size:.7rem">Expira em</div><div style="margin-top:2px;color:${sub.days_remaining<7?'var(--red)':'var(--green)'};font-weight:600">${sub.days_remaining} dias</div></div>
+        ${sub.is_in_trial?`<div style="background:var(--bg2);border-radius:7px;padding:10px;grid-column:1/-1"><div style="color:var(--muted);font-size:.7rem">Trial termina em</div><div style="margin-top:2px;color:var(--amber);font-weight:600">${fd(sub.trial_ends_at)}</div></div>`:''}
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn bp bs" onclick="go('subscription')"><i class="bi bi-arrow-up-circle"></i> Upgrade</button>
+      </div>
+    `;
+    const u=usage?.resources||{};
+    document.getElementById('usage-card').innerHTML=`
+      <div class="ct" style="margin-bottom:16px">Utilização do Plano</div>
+      ${Object.entries(u).map(([k,v])=>{
+        const pct=v.unlimited?0:Math.min((v.used/v.limit)*100,100)||0;
+        const color=pct>90?'var(--red)':pct>70?'var(--amber)':'var(--accent)';
+        const labels={customers:'Clientes',meters:'Medidores',users:'Utilizadores',readings_this_month:'Leituras/mês',invoices_this_month:'Faturas/mês'};
+        return `<div class="usage-item">
+          <div class="usage-top"><span style="font-size:.78rem">${labels[k]||k}</span><span style="font-size:.75rem;color:var(--muted)">${v.unlimited?v.used+' (∞)':v.used+'/'+v.limit}</span></div>
+          <div class="usage-bar"><div class="usage-fill" style="width:${v.unlimited?20:pct}%;background:${color}"></div></div>
+        </div>`;
+      }).join('')}
+    `;
+    // Subscription invoices
+    const inv=await G('/subscriptions/invoices/').catch(()=>[]);
+    const tb=document.getElementById('t-sub-invoices');
+    tb.innerHTML=(Array.isArray(inv)?inv:[]).map(i=>`<tr>
+      <td style="font-family:var(--font-m);font-weight:600">${fm(i.amount)}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fd(i.period_start)} — ${fd(i.period_end)}</td>
+      <td>${sbx(i.status)}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${fd(i.paid_at)}</td>
+      <td>${i.status==='PENDING'?`<button class="btn bp bs" onclick="paySaaSInvoice('${i.id}')"><i class="bi bi-cash"></i> Pagar</button>`:''}</td>
+    </tr>`).join('')||`<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--muted)">Sem faturas.</td></tr>`;
+  }catch(e){toast('Erro subscrição: '+e.message,'error');}
+}
+
+async function paySaaSInvoice(id){
+  showModal('Pagar Fatura SaaS',`
+    <div class="fg"><label class="fl">Método</label>
+      <select id="sp-method" class="fc"><option value="MPESA">M-Pesa</option><option value="EMOLA">e-Mola</option><option value="BANK_TRANSFER">Banco</option></select>
+    </div>
+    <div class="fg"><label class="fl">Ref. Transacção</label><input id="sp-ref" class="fc"></div>
+  `,`<button class="btn bg bs" onclick="closeModal()">Cancelar</button>
+     <button class="btn bp bs" onclick="submitSaaSPay('${id}')">Confirmar Pagamento</button>`);
+}
+
+async function submitSaaSPay(id){
+  try{
+    await P(`/subscriptions/invoices/${id}/pay/`,{payment_method:document.getElementById('sp-method').value,transaction_ref:document.getElementById('sp-ref').value});
+    toast('Fatura paga! Subscrição renovada.','success'); closeModal(); loadSubscription();
+  }catch(e){toast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════
+// OPEN MODAL (generic)
+// ════════════════════════════════════════════════
+async function openModal(type){
+  const forms={
+    customer:{
+      title:'Novo Cliente',
+      body:`
+        <div class="fr2">
+          <div class="fg"><label class="fl">Nome *</label><input id="cf-fname" class="fc" required></div>
+          <div class="fg"><label class="fl">Apelido *</label><input id="cf-lname" class="fc" required></div>
+        </div>
+        <div class="fg"><label class="fl">Email *</label><input id="cf-email" type="email" class="fc" required></div>
+        <div class="fg"><label class="fl">Doc. (CPF/NUIT) *</label><input id="cf-doc" class="fc" required></div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitCustomer()"><i class="bi bi-check-lg"></i> Criar</button>`,
+    },
+    meter:{
+      title:'Novo Medidor',
+      body:`
+        <div class="fg"><label class="fl">Nº Série *</label><input id="mf-serial" class="fc" required placeholder="Ex: MED-2024-001"></div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Data Instalação *</label><input id="mf-date" type="date" class="fc" value="${new Date().toISOString().split('T')[0]}"></div>
+          <div class="fg"><label class="fl">Endereço (ID) *</label><input id="mf-addr" class="fc" placeholder="UUID do endereço"></div>
+        </div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitMeter()"><i class="bi bi-check-lg"></i> Criar</button>`,
+    },
+    invoice:{
+      title:'Nova Fatura',
+      body:`
+        <div class="fg"><label class="fl">Cliente (ID) *</label><input id="if-customer" class="fc" placeholder="UUID do cliente"></div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Mês Ref.</label>
+            <select id="if-month" class="fc">
+              ${[...Array(12)].map((_,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Ano Ref.</label><input id="if-year" type="number" class="fc" value="${new Date().getFullYear()}"></div>
+        </div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Total (MT) *</label><input id="if-total" type="number" step="0.01" class="fc" required></div>
+          <div class="fg"><label class="fl">Vencimento *</label><input id="if-due" type="date" class="fc" required></div>
+        </div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitInvoice()"><i class="bi bi-check-lg"></i> Criar</button>`,
+    },
+    payment:{
+      title:'Registar Pagamento',
+      body:`
+        <div class="fg"><label class="fl">Fatura (ID) *</label><input id="pf-invoice" class="fc" placeholder="UUID da fatura"></div>
+        <div class="fr2">
+          <div class="fg"><label class="fl">Valor (MT) *</label><input id="pf-amount" type="number" step="0.01" class="fc" required></div>
+          <div class="fg"><label class="fl">Método *</label>
+            <select id="pf-method" class="fc">
+              <option value="CASH">💵 Dinheiro</option>
+              <option value="MPESA">📱 M-Pesa</option>
+              <option value="EMOLA">📲 e-Mola</option>
+              <option value="BANK_TRANSFER">🏦 Banco</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg"><label class="fl">Referência</label><input id="pf-ref" class="fc" placeholder="N.º transacção"></div>
+        <div class="fg"><label class="fl">Data</label><input id="pf-date" type="datetime-local" class="fc" value="${new Date().toISOString().slice(0,16)}"></div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitPayment()"><i class="bi bi-check-lg"></i> Registar</button>`,
+    },
+    staff:{
+      title:'Novo Funcionário',
+      body:`
+        <div class="fr2">
+          <div class="fg"><label class="fl">Nome *</label><input id="sf-fname" class="fc" required></div>
+          <div class="fg"><label class="fl">Apelido</label><input id="sf-lname" class="fc"></div>
+        </div>
+        <div class="fg"><label class="fl">Username *</label><input id="sf-user" class="fc" required></div>
+        <div class="fg"><label class="fl">Email</label><input id="sf-email" type="email" class="fc"></div>
+        <div class="fg"><label class="fl">Senha *</label><input id="sf-pass" type="password" class="fc" required minlength="8"></div>
+        <div class="fg"><label class="fl">Role *</label>
+          <select id="sf-role" class="fc">
+            <option value="CLERK">Atendente</option>
+            <option value="READER">Leiturista</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitStaff()"><i class="bi bi-check-lg"></i> Criar</button>`,
+    },
+    route:{
+      title:'Nova Rota',
+      body:`
+        <div class="fg"><label class="fl">Nome *</label><input id="rf-name" class="fc" required placeholder="Ex: Rota Norte"></div>
+        <div class="fg"><label class="fl">Descrição</label><textarea id="rf-desc" class="fc" rows="2"></textarea></div>
+      `,
+      foot:`<button class="btn bg bs" onclick="closeModal()">Cancelar</button><button class="btn bp bs" onclick="submitRoute()"><i class="bi bi-check-lg"></i> Criar</button>`,
+    },
+  };
+  const f=forms[type]; if(!f) return;
+  showModal(f.title,f.body,f.foot);
+}
+
+// Submit handlers
+async function submitCustomer(){
+  const fn=document.getElementById('cf-fname').value,ln=document.getElementById('cf-lname').value;
+  const email=document.getElementById('cf-email').value,doc=document.getElementById('cf-doc').value;
+  if(!fn||!email||!doc){toast('Preencha os campos obrigatórios','warning');return;}
+  try{ await P('/customers/',{first_name:fn,last_name:ln,email,document_id:doc}); toast('Cliente criado!','success'); closeModal(); loadCustomers(); }
+  catch(e){ const m=e.data?Object.entries(e.data).map(([k,v])=>`${k}: ${v}`).join('<br>'):e.message; toast(m,'error'); }
+}
+async function submitMeter(){
+  const s=document.getElementById('mf-serial').value,d=document.getElementById('mf-date').value,a=document.getElementById('mf-addr').value;
+  if(!s||!d||!a){toast('Preencha os campos obrigatórios','warning');return;}
+  try{ await P('/meters/',{serial_number:s,installation_date:d,address:a}); toast('Medidor criado!','success'); closeModal(); loadMeters(); }
+  catch(e){toast(e.message,'error');}
+}
+async function submitInvoice(){
+  const cust=document.getElementById('if-customer').value,total=document.getElementById('if-total').value,due=document.getElementById('if-due').value;
+  if(!cust||!total||!due){toast('Preencha os campos obrigatórios','warning');return;}
+  const m=parseInt(document.getElementById('if-month').value),y=parseInt(document.getElementById('if-year').value);
+  try{ await P('/invoices/',{customer:cust,total_amount:parseFloat(total),due_date:due,reference_month:m,reference_year:y,status:'PENDING',items:[]}); toast('Fatura criada!','success'); closeModal(); loadInvoices(); }
+  catch(e){toast(e.message,'error');}
+}
+async function submitPayment(){
+  const inv=document.getElementById('pf-invoice').value,amt=parseFloat(document.getElementById('pf-amount').value),meth=document.getElementById('pf-method').value,ref=document.getElementById('pf-ref').value,dt=document.getElementById('pf-date').value;
+  if(!inv||!amt){toast('Preencha os campos obrigatórios','warning');return;}
+  try{ await P('/payments/',{invoice:inv,amount_paid:amt,method:meth,transaction_id:ref||undefined,payment_date:new Date(dt).toISOString()}); toast('Pagamento registado!','success'); closeModal(); loadPayments(); }
+  catch(e){toast(e.data?.error||e.message,'error');}
+}
+async function submitStaff(){
+  const fn=document.getElementById('sf-fname').value,ln=document.getElementById('sf-lname').value,user=document.getElementById('sf-user').value,email=document.getElementById('sf-email').value,pass=document.getElementById('sf-pass').value,role=document.getElementById('sf-role').value;
+  if(!fn||!user||!pass){toast('Preencha os campos obrigatórios','warning');return;}
+  try{ await P('/users/',{first_name:fn,last_name:ln,username:user,email,password:pass,role}); toast('Funcionário criado!','success'); closeModal(); loadStaff(); }
+  catch(e){ const m=e.data?Object.entries(e.data).map(([k,v])=>`${k}: ${v}`).join('<br>'):e.message; toast(m,'error'); }
+}
+async function submitRoute(){
+  const name=document.getElementById('rf-name').value,desc=document.getElementById('rf-desc').value;
+  if(!name){toast('Nome obrigatório','warning');return;}
+  try{ await P('/routes/',{name,description:desc}); toast('Rota criada!','success'); closeModal(); loadRoutes(); }
+  catch(e){toast(e.message,'error');}
+}
+async function deactivateCustomer(id){
+  if(!confirm('Desactivar este cliente?')) return;
+  try{ await P(`/customers/${id}/deactivate/`); toast('Cliente desactivado','success'); loadCustomers(custPage); }catch(e){toast(e.message,'error');}
+}
+function openEditCustomer(c){
+  showModal('Editar Cliente',`
+    <div class="fr2">
+      <div class="fg"><label class="fl">Nome</label><input id="ec-fn" class="fc" value="${c.first_name||''}"></div>
+      <div class="fg"><label class="fl">Apelido</label><input id="ec-ln" class="fc" value="${c.last_name||''}"></div>
+    </div>
+    <div class="fg"><label class="fl">Email</label><input id="ec-em" type="email" class="fc" value="${c.email||''}"></div>
+  `,`<button class="btn bg bs" onclick="closeModal()">Cancelar</button>
+     <button class="btn bp bs" onclick="submitEditCustomer('${c.id}')">Guardar</button>`);
+}
+async function submitEditCustomer(id){
+  const fn=document.getElementById('ec-fn').value,ln=document.getElementById('ec-ln').value,em=document.getElementById('ec-em').value;
+  try{ await PH(`/customers/${id}/`,{first_name:fn,last_name:ln,email:em}); toast('Cliente actualizado!','success'); closeModal(); loadCustomers(custPage); }catch(e){toast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+function doLogout(){ localStorage.clear(); location.href='/login/'; }
+
+// Check subscription
+async function checkSubscription(){
+  try{
+    const sub=await G('/subscriptions/current/');
+    const alert=document.getElementById('sub-alert');
+    const msg=document.getElementById('sub-alert-msg');
+    if(sub.status==='TRIAL'){
+      alert.className='sub-alert trial';
+      msg.textContent=`Trial activo — expira em ${sub.days_remaining} dias.`;
+    } else if(['SUSPENDED','EXPIRED','PAST_DUE'].includes(sub.status)){
+      alert.className='sub-alert expired';
+      msg.textContent=`Subscrição ${sub.status} — acesso limitado.`;
+    }
+  }catch{}
+}
+
+// User info
+const u=JSON.parse(localStorage.getItem('aq_user')||'{}');
+document.getElementById('sb-company-name').textContent=u.company_name||'Empresa';
+document.getElementById('sb-name').textContent=u.first_name?`${u.first_name} ${u.last_name||''}`:u.username||'—';
+document.getElementById('sb-role').textContent={ADMIN:'Administrador',CLERK:'Atendente',READER:'Leiturista',CUSTOMER:'Cliente'}[u.role]||u.role||'—';
+document.getElementById('sb-init').textContent=((u.first_name||'?')[0]+(u.last_name||'?')[0]).toUpperCase();
+
+// Search debounce
+['cust-search','meter-search','inv-search'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input',function(){
+    clearTimeout(this._t); this._t=setTimeout(()=>{
+      if(id==='cust-search') loadCustomers();
+      else if(id==='meter-search') loadMeters();
+      else loadInvoices();
+    },400);
+  });
+});
+['cust-filter-active','meter-filter-status','inv-filter-status','pay-filter-method','pay-filter-status'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change',()=>{
+    if(id.startsWith('cust')) loadCustomers();
+    else if(id.startsWith('meter')) loadMeters();
+    else if(id.startsWith('inv')) loadInvoices();
+    else loadPayments();
+  });
+});
+
+checkSubscription();
+loadHome();
+</script>
+</body>
+</html>

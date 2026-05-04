@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SpeedBurger - O melhor fast food da cidade. Hambúrgueres artesanais, entrega rápida e sabor inigualável.">
+    <meta name="keywords" content="hambúrguer, fast food, delivery, lanche, comida rápida, artesanal">
+    <meta property="og:title" content="SpeedBurger | O Melhor Fast Food">
+    <meta property="og:description" content="Peça agora o melhor hambúrguer da cidade com entrega em 30 minutos.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80">
+    <title>SpeedBurger | O Melhor Fast Food</title>
+
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="burhrtstyle.css">
+</head>
+<body>
+
+    <!-- Header com Glassmorphism -->
+    <header class="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                Speed<span class="highlight">Burger</span>.
+                <div class="logo-sub">Fast & Fresh</div>
+            </a>
+
+            <nav class="navbar">
+                <a href="#home" class="nav-link active">Início</a>
+                <a href="#promo" class="nav-link">Ofertas</a>
+                <a href="#menu" class="nav-link">Cardápio</a>
+                <a href="#about" class="nav-link">Sobre</a>
+                <a href="#contact" class="nav-link">Contato</a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="cart-btn" aria-label="Carrinho">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </button>
+                <a href="#menu" class="btn-order">
+                    <i class="fas fa-motorcycle"></i> Pedir Agora
+                </a>
+                <div class="menu-toggle" aria-label="Abrir menu">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-bg-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+            </div>
+            <div class="container hero-container">
+                <div class="hero-content fade-in-up">
+                    <div class="badge-featured">🔥 Mais vendido da semana</div>
+                    <h1>O Verdadeiro Sabor <br> <span class="highlight-text">Artesanal</span></h1>
+                    <p>Ingredientes selecionados, carne 100% angus e molhos feitos na casa. Peça agora e receba em minutos.</p>
+                    <div class="hero-buttons">
+                        <a href="#menu" class="btn btn-primary">Ver Cardápio <i class="fas fa-arrow-right"></i></a>
+                        <a href="#about" class="btn btn-outline">Conheça a Marca</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">30min</span>
+                            <span class="stat-label">Entrega Média</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">4.9</span>
+                            <span class="stat-label">Avaliação</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">10k+</span>
+                            <span class="stat-label">Pedidos</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image fade-in-right">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Hambúrguer SpeedBurger" class="burger-img">
+                        <div class="floating-card card-1">
+                            <i class="fas fa-star"></i> <span>Top 1</span>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="fas fa-fire"></i> <span>Fresco</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Promo Banner -->
+        <section class="promo-section" id="promo">
+            <div class="container">
+                <div class="promo-card">
+                    <div class="promo-content">
+                        <h2>🎉 Oferta Relâmpago!</h2>
+                        <p>Peça o combo "Speed Supreme" e ganhe um milkshake grátis. Válido apenas hoje.</p>
+                        <div class="countdown">
+                            <span>02</span>:<span>14</span>:<span>35</span>
+                        </div>
+                        <button class="btn btn-primary">Aproveitar Oferta</button>
+                    </div>
+                    <div class="promo-image">
+                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Combo Promoção">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Menu Section -->
+        <section class="menu-section" id="menu">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Nossos <span class="highlight-text">Favoritos</span></h2>
+                    <p class="section-subtitle">Escolha o seu e sinta o sabor explodir</p>
+                </div>
+
+                <!-- Filtros -->
+                <div class="menu-filters">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="burger">Hambúrgueres</button>
+                    <button class="filter-btn" data-filter="side">Acompanhamentos</button>
+                    <button class="filter-btn" data-filter="drink">Bebidas</button>
+                </div>
+
+                <div class="menu-grid">
+                    <!-- Item 1 -->
+                    <article class="menu-card" data-category="burger">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Burger Clássico">
+                            <span class="badge hot">Popular</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3>Burger Clássico</h3>
+                                <span class="price">R$ 28,90</span>
+                            </div>
+                            <p class="card-desc">Pão brioche, 180g de carne angus, cheddar duplo, alface, tomate e molho da casa.</p>
+                            <button class="btn-add" aria-label="Adicionar ao carrinho">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Item 2 -->
+                    <article class="menu-card" data-category="burger">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Burger Bacon">
+                            <span class="badge new">Novo</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3>Bacon Supreme</h3>
+                                <span class="price">R$ 32,90</span>
+                            </div>
+                            <p class="card-desc">Pão australiano, carne suína, bacon crocante, cebola caramelizada e barbecue.</p>
+                            <button class="btn-add" aria-label="Adicionar ao carrinho">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Item 3 -->
+                    <article class="menu-card" data-category="side">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1576107232684-1279f390859f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Batata">
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3>Batata Suprema</h3>
+                                <span class="price">R$ 18,90</span>
+                            </div>
+                            <p class="card-desc">Batatas fritas com cheddar, bacon e cebolinha fresca.</p>
+                            <button class="btn-add" aria-label="Adicionar ao carrinho">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </article>
+
+                    <!-- Item 4 -->
+                    <article class="menu-card" data-category="drink">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Milkshake">
+                        </div>
+                        <div class="card-content">
+                            <div class="card-header">
+                                <h3>Milkshake Morango</h3>
+                                <span class="price">R$ 15,90</span>
+                            </div>
+                            <p class="card-desc">Sorvete de creme, morangos frescos, chantilly e calda de chocolate.</p>
+                            <button class="btn-add" aria-label="Adicionar ao carrinho">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="container">
+                <div class="about-wrapper">
+                    <div class="about-image fade-in-left">
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Restaurante SpeedBurger">
+                        <div class="experience-badge">
+                            <span>10+</span> Anos de <br>Experiência
+                        </div>
+                    </div>
+                    <div class="about-content fade-in-right">
+                        <h2 class="section-title">Sobre a <span class="highlight-text">SpeedBurger</span></h2>
+                        <p>Nascemos em 2013 com uma missão simples: entregar o melhor hambúrguer da cidade com velocidade sem perder a qualidade. Acreditamos que fast food não precisa ser "comida rápida ruim".</p>
+                        <div class="features-grid">
+                            <div class="feature-item">
+                                <i class="fas fa-leaf"></i>
+                                <h4>Ingredientes Frescos</h4>
+                                <p>Vegetais colhidos diariamente.</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-shipping-fast"></i>
+                                <h4>Entrega Rápida</h4>
+                                <p>Média de 30 minutos.</p>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-heart"></i>
+                                <h4>Feito com Amor</h4>
+                                <p>Receitas artesanais.</p>
+                            </div>
+                        </div>
+                        <a href="#contact" class="btn btn-primary">Fale Conosco</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="newsletter">
+            <div class="container">
+                <div class="newsletter-content">
+                    <h2>Entre para o Clube do Sabor</h2>
+                    <p>Cadastre-se e receba ofertas exclusivas e descontos especiais.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Seu melhor e-mail" required>
+                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="#" class="logo">
+                        Speed<span class="highlight">Burger</span>.
+                    </a>
+                    <p>O melhor fast food da cidade, feito com amor e velocidade. Siga-nos para novidades.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="#home">Início</a></li>
+                        <li><a href="#menu">Cardápio</a></li>
+                        <li><a href="#about">Sobre</a></li>
+                        <li><a href="#contact">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contato</h4>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> Rua dos Sabores, 123 - Centro</li>
+                        <li><i class="fas fa-phone"></i> (11) 99999-9999</li>
+                        <li><i class="fas fa-envelope"></i> contato@speedburger.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 SpeedBurger. Todos os direitos reservados. Design by AI.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Menu Mobile Toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navbar = document.querySelector('.navbar');
+        const header = document.querySelector('.header');
+
+        menuToggle.addEventListener('click', () => {
+            navbar.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        });
+
+        // Fechar menu ao clicar em link
+        document.querySelectorAll('.navbar a').forEach(link => {
+            link.addEventListener('click', () => {
+                navbar.classList.remove('active');
+                menuToggle.classList.remove('active');
+            });
+        });
+
+
+
+// Scroll Header Effect
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+});
+
+// Animação de Scroll (Intersection Observer)
+const observerOptions = { threshold: 0.1 };
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.fade-in-up, .fade-in-left, .fade-in-right').forEach(el => {
+  observer.observe(el);
+});
+
+// Filtros de Menu (Simples)
+const filterBtns = document.querySelectorAll('.filter-btn');
+const menuCards = document.querySelectorAll('.menu-card');
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Remove active de todos
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filter = btn.getAttribute('data-filter');
+
+    menuCards.forEach(card => {
+      if (filter === 'all' || card.getAttribute('data-category') === filter) {
+        card.style.display = 'block';
+        // Pequena animação de entrada ao filtrar
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, 50);
+      } else {
+        card.style.display = 'none';
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+      }
+    });
+  });
+});
+
+// Simulação de Carrinho
+let cartCount = 0;
+const cartBtn = document.querySelector('.cart-btn');
+const cartCountSpan = document.querySelector('.cart-count');
+const addBtns = document.querySelectorAll('.btn-add');
+
+addBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    cartCount++;
+    cartCountSpan.textContent = cartCount;
+
+    // Animação de "bump" no ícone do carrinho
+    cartBtn.classList.add('bump');
+    setTimeout(() => cartBtn.classList.remove('bump'), 300);
+
+    // Feedback visual no botão
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Adicionado';
+    btn.style.background = 'var(--secondary)';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+    }, 1500);
+  });
+});
+</script>
+</body>
+</html>

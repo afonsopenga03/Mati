@@ -1,0 +1,164 @@
+name: Qwen Agent — NVIDIA NIM
+version: 1.0.0
+schema: v1
+
+# ──────────────────────────────────────────────
+#  MODELS
+# ──────────────────────────────────────────────
+models:
+
+  # ① Modelo principal — Chat + Agent + Edição
+  - name: Qwen 3.5 122B
+    provider: openai
+    model: qwen/qwen3.5-122b-a10b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    capabilities:
+      - tool_use                # OBRIGATÓRIO para Agent mode criar ficheiros
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      # ⚠️ IMPORTANTE: maxTokens deve ser < contextLength
+      # Valores próximos de 32768 causam bug no Continue — usar 16000 é seguro
+      maxTokens: 16000
+      contextLength: 32000
+      temperature: 0.6
+    requestOptions:
+      extraBodyProperties:
+        chat_template_kwargs:
+          thinking: true        # raciocínio estendido (modo thinking)
+
+  # ② Autocomplete rápido
+  - name: Qwen 3 8B — Autocomplete
+    provider: openai
+    model: qwen/qwen3-8b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    roles:
+      - autocomplete
+    autocompleteOptions:
+      debounceDelay: 300
+      maxPromptTokens: 2048
+      onlyMyCode: false
+    defaultCompletionOptions:
+      maxTokens: 512
+      temperature: 0.2
+
+# ──────────────────────────────────────────────
+#  CONTEXT PROVIDERS
+# ──────────────────────────────────────────────
+context:
+  - provider: file          # @file — incluir ficheiro específico
+  - provider: code          # @code — funções e classes
+  - provider: folder        # @folder — pasta inteira
+  - provider: codebase      # @codebase — pesquisa semântica no projecto
+  - provider: diff          # @diff — mudanças git não commitadas
+  - provider: terminal      # @terminal — output do terminal
+  - provider: problems      # @problems — erros do painel Problems
+  - provider: tree          # @tree — estrutura de pastas
+  - provider: url           # @url — conteúdo de uma URL
+  - provider: docs          # @docs — documentação indexada
+
+# ──────────────────────────────────────────────
+#  RULES — injectadas em TODOS os pedidos
+# ──────────────────────────────────────────────
+rules:
+  # Comportamento geral
+  - Think step-by-step before writing any code. Plan first, then implement.
+  - Always write complete, production-ready code. Never truncate with comments like "# rest of code here".
+  - If a response is long, continue writing until the code is fully complete — do not stop mid-function.
+
+  # Python
+  - Use Python type hints in every function signature. No exceptions.
+  - Follow PEP 8. Format as if running black and isort.
+  - Use pathlib instead of os.path. Use dataclasses or pydantic instead of raw dicts.
+  - Never use bare except. Always catch specific exceptions with descriptive messages.
+  - Use logging module, never print(), for debug output in production code.
+  - Validate all inputs at the entry point of functions before processing.
+
+  # Frontend HTML/CSS
+  - Always define CSS custom properties (:root { --color-*, --space-*, --font-* }) before writing styles.
+  - Write mobile-first CSS using min-width media queries only.
+  - Use semantic HTML elements (main, section, article, header, nav, aside, footer).
+  - Include aria-label and role attributes for interactive elements.
+  - Never use Arial, Roboto, or system-ui as primary font. Choose distinctive Google Fonts.
+  - Animations must use CSS transitions or @keyframes, never JS-based timers for visual effects.
+
+  # File and folder creation (Agent mode)
+  - When creating a project, ALWAYS create the complete folder structure and ALL files without asking.
+  - Create files using the built-in file tools — do not just show code blocks and expect the user to create files manually.
+  - After creating files, confirm what was created with a brief list.
+
+# ──────────────────────────────────────────────
+#  SLASH COMMANDS
+# ──────────────────────────────────────────────
+prompts:
+
+  - name: review
+    description: Code review completo como senior engineer
+    prompt: |
+      Faz um code review detalhado deste código como senior engineer.
+      Avalia nesta ordem:
+      1. Correctness — lógica, edge cases, erros silenciados
+      2. Security — inputs não validados, exposição de dados
+      3. Performance — complexidade algorítmica, I/O desnecessário
+      4. Readability — nomes, responsabilidade única, comentários
+      Para cada problema encontrado, explica o porquê e sugere a correcção.
+
+  - name: explain
+    description: Explica o código de forma clara e didáctica
+    prompt: |
+      Explica este código como se eu fosse um developer sénior que nunca viu
+      esta base de código. Foca em:
+      - O que faz (em termos de negócio)
+      - Como funciona passo a passo
+      - Decisões de design relevantes
+      - O que poderia ser melhorado
+
+  - name: test
+    description: Gera testes pytest completos e correctos
+    prompt: |
+      Escreve testes pytest completos para este código.
+      - Usa fixtures quando adequado
+      - Cobre edge cases: None, vazio, valor inválido, excepções
+      - Usa @pytest.mark.parametrize para variantes de input
+      - Cada teste tem nome descritivo que explica o que testa
+      - Inclui pelo menos um teste de integração se aplicável
+      Escreve TODOS os testes sem truncar.
+
+  - name: refactor
+    description: Refactora mantendo comportamento, melhorando estrutura
+    prompt: |
+      Refactora este código mantendo exactamente o mesmo comportamento externo.
+      Aplica:
+      - Single Responsibility: uma função, uma responsabilidade
+      - DRY: elimina duplicação
+      - Type hints em todas as funções
+      - Nomes descritivos sem abreviaturas
+      - Substitui comentários óbvios por código auto-explicativo
+      Explica cada mudança significativa. Escreve o código COMPLETO.
+
+  - name: html
+    description: Cria componente HTML/CSS production-ready de alta qualidade
+    prompt: |
+      Cria um componente HTML/CSS production-ready completo.
+      OBRIGATÓRIO:
+      - CSS custom properties para todos os design tokens (:root { ... })
+      - Mobile-first com min-width media queries
+      - HTML semântico com atributos aria
+      - Google Fonts (nunca Arial/Roboto/system-ui)
+      - Animações com CSS transitions ou @keyframes
+      - Design memorável e único, não genérico
+      Escreve o HTML, CSS e JS num único ficheiro completo.
+
+  - name: scaffold
+    description: Cria estrutura completa de projecto com todos os ficheiros
+    prompt: |
+      Cria a estrutura completa deste projecto Python/web:
+      - Todas as pastas necessárias
+      - Todos os ficheiros de configuração (requirements.txt, .gitignore, README.md, etc.)
+      - Ficheiros de código iniciais com estrutura correcta
+      - Usa o Agent mode para criar os ficheiros directamente, não só mostrar o código
+      Cria TUDO sem pedir confirmação a cada ficheiro.

@@ -1,0 +1,275 @@
+name: Qwen Agent — NVIDIA NIM
+version: 1.0.0
+schema: v1
+
+# ══════════════════════════════════════════════════════
+#  COMO INSTALAR ESTE FICHEIRO:
+#
+#  Linux / macOS  →  ~/.continue/config.yaml
+#  Windows        →  %USERPROFILE%\.continue\config.yaml
+#
+#  Atalho: painel Continue → dropdown de agente → ⚙ "Local Config"
+#
+#  VARIÁVEL DE AMBIENTE NECESSÁRIA (adiciona ao .bashrc / .zshrc):
+#  export NVIDIA_API_KEY="nvapi-XXXXXXXXXXXXXXXXXXXXXXXX"
+#
+#  IMPORTANTE: O Continue NÃO lê variáveis de ambiente do shell!
+#  Cria um ficheiro .env em ~/.continue/.env com:
+#  NVIDIA_API_KEY=nvapi-XXXXXXXXXXXXXXXXXXXXXXXX
+# ══════════════════════════════════════════════════════
+
+
+# ──────────────────────────────────────────────────────
+#  MODELOS
+# ──────────────────────────────────────────────────────
+models:
+
+  # ① FAST — Uso diário, sem thinking, contexto longo
+  #    Usa este para: perguntas, código simples, edição, frontend
+  #    Economiza tokens → conversa dura muito mais tempo
+  - name: "⚡ Qwen Fast (sem thinking)"
+    provider: openai
+    model: qwen/qwen3.5-122b-a10b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    capabilities:
+      - tool_use
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      maxTokens: 16000        # ⚠️ Não usar 32768 — causa bug no Continue
+      contextLength: 32000    # contextLength deve ser > maxTokens
+      temperature: 0.6
+    requestOptions:
+      extraBodyProperties:
+        chat_template_kwargs:
+          thinking: false     # ← DESLIGADO: economiza ~50% dos tokens
+
+  # ② THINK — Para problemas complexos, bugs difíceis, arquitectura
+  #    Usa este quando precisas de raciocínio profundo
+  #    Consome mais tokens — inicia nova sessão quando chegares a 50%
+  - name: "🧠 Qwen Think (raciocínio profundo)"
+    provider: openai
+    model: qwen/qwen3.5-122b-a10b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    capabilities:
+      - tool_use
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:
+      maxTokens: 12000        # Menor porque o thinking já usa muitos tokens
+      contextLength: 32000
+      temperature: 0.7
+    requestOptions:
+      extraBodyProperties:
+        chat_template_kwargs:
+          thinking: true      # ← LIGADO: raciocínio estendido
+
+  # ③ AUTOCOMPLETE — Modelo pequeno, rápido, sempre activo
+  - name: "Qwen 8B — Autocomplete"
+    provider: openai
+    model: qwen/qwen3-8b
+    apiBase: https://integrate.api.nvidia.com/v1
+    apiKey: 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
+    roles:
+      - autocomplete
+    autocompleteOptions:
+      debounceDelay: 300
+      maxPromptTokens: 2048
+      onlyMyCode: false
+    defaultCompletionOptions:
+      maxTokens: 512
+      temperature: 0.2
+
+
+# ──────────────────────────────────────────────────────
+#  MCP SERVERS — Ferramentas do agente
+# ──────────────────────────────────────────────────────
+#
+#  ⚠️  MCP só funciona em AGENT MODE
+#     Muda para Agent no selector no fundo do chat
+#
+mcpServers:
+
+  # MEMÓRIA PERSISTENTE — lembra informações entre sessões
+  # Instala com: npm install -g @modelcontextprotocol/server-memory
+  # (requer Node.js — https://nodejs.org)
+  - name: memory
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-memory"
+
+  # SISTEMA DE FICHEIROS — lê/escreve ficheiros do teu sistema
+  # Edita o caminho abaixo para a tua pasta de projectos
+  - name: filesystem
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/home"                # Linux
+      # - "/Users/SEU_NOME"   # macOS — descomenta e edita
+      # - "C:\\Users\\SEU_NOME" # Windows — descomenta e edita
+
+  # GIT — operações git directamente pelo agente
+  # Instala com: pip install mcp-server-git --break-system-packages
+  - name: git
+    command: uvx
+    args:
+      - mcp-server-git
+
+
+# ──────────────────────────────────────────────────────
+#  CONTEXT PROVIDERS — O que podes mencionar no chat
+# ──────────────────────────────────────────────────────
+context:
+  - provider: file        # @file — ficheiro específico
+  - provider: code        # @code — funções e classes
+  - provider: folder      # @folder — pasta inteira
+  - provider: codebase    # @codebase — pesquisa semântica no projecto
+  - provider: diff        # @diff — alterações git não commitadas
+  - provider: terminal    # @terminal — output do terminal
+  - provider: problems    # @problems — erros do painel Problems
+  - provider: tree        # @tree — estrutura de pastas
+  - provider: url         # @url — conteúdo de uma URL
+
+
+# ──────────────────────────────────────────────────────
+#  RULES — Injectadas em TODOS os pedidos automaticamente
+# ──────────────────────────────────────────────────────
+rules:
+
+  # ── Raciocínio e completude ──
+  - Think step-by-step before writing code. Plan the approach first, then implement.
+  - NEVER truncate code with "# ... rest of code ..." or similar placeholders. Always write the complete, full implementation. If a file is long, write all of it.
+  - If a response will be long, keep writing until fully complete. Never stop mid-function or mid-class.
+  - State the key decisions you made and why, briefly, at the end of each code response.
+
+  # ── Python ──
+  - Use type hints on every function parameter and return value. No exceptions.
+  - Follow PEP 8 strictly. Format as if black and isort were run on the code.
+  - Use pathlib.Path instead of os.path for all file operations.
+  - Use dataclasses or pydantic BaseModel instead of plain dicts for structured data.
+  - Never write bare except or except Exception without re-raising or logging.
+  - Use the logging module instead of print() in all non-script code.
+  - Validate all function inputs at the entry point before processing.
+
+  # ── Frontend HTML/CSS ──
+  - Define all design tokens as CSS custom properties in :root before any other styles.
+  - Write mobile-first CSS using only min-width media queries.
+  - Use semantic HTML5 elements — main, section, article, header, nav, aside, footer.
+  - Add aria-label and role attributes to all interactive elements.
+  - Never use Arial, Roboto, Inter, or generic system fonts as primary font. Always choose a distinctive Google Font.
+  - Use CSS transitions or @keyframes for animations. Never JS-based timers for visual effects.
+
+  # ── Criação de ficheiros (Agent mode) ──
+  - When creating a project, use file tools to create ALL folders and files directly. Do not show code blocks and ask the user to create files manually.
+  - After creating files, show a brief summary of what was created.
+  - When fixing a bug, identify and fix the root cause. Never silence errors with try/except.
+
+  # ── Memória ──
+  - At the start of each new session, recall relevant memories using the memory MCP tool.
+  - When the user shares important project context (stack, conventions, decisions), save it to memory with a clear label.
+  - When the context window fills to 60%, proactively summarise the session state and save to memory before the context is lost.
+
+
+# ──────────────────────────────────────────────────────
+#  SLASH COMMANDS CUSTOMIZADOS
+# ──────────────────────────────────────────────────────
+prompts:
+
+  - name: save-memory
+    description: Salva o contexto desta sessão na memória persistente
+    prompt: |
+      Usa o MCP de memória para guardar o contexto desta sessão.
+      Salva:
+      1. O que estávamos a construir (projecto, funcionalidade, ficheiro)
+      2. Decisões técnicas tomadas (tecnologias, padrões escolhidos)
+      3. Problemas resolvidos e como foram resolvidos
+      4. Estado actual e próximo passo
+      Usa labels claras como "projecto:nome", "decisão:tema", "bug:descrição".
+      Confirma o que foi guardado.
+
+  - name: recall
+    description: Recupera memórias relevantes para a sessão actual
+    prompt: |
+      Usa o MCP de memória para recuperar contexto relevante.
+      Procura memórias sobre:
+      - O projecto actual (nome da pasta ou ficheiros abertos)
+      - Tecnologias e convenções usadas
+      - Decisões técnicas anteriores
+      - Bugs resolvidos recentemente
+      Resume o que encontraste antes de começarmos.
+
+  - name: review
+    description: Code review completo como senior engineer
+    prompt: |
+      Faz um code review detalhado como senior engineer.
+      Avalia nesta ordem:
+      1. Correctness — lógica, edge cases, erros silenciados
+      2. Security — inputs não validados, exposição de dados
+      3. Performance — complexidade algorítmica, I/O desnecessário
+      4. Readability — nomes, responsabilidade única, comentários
+      Para cada problema encontrado, explica o porquê e dá a correcção.
+      Escreve o código corrigido completo no final.
+
+  - name: explain
+    description: Explica o código de forma clara e didáctica
+    prompt: |
+      Explica este código como se eu fosse um developer sénior
+      que nunca viu esta base de código. Cobre:
+      - O que faz (em termos de negócio/funcionalidade)
+      - Como funciona passo a passo
+      - Decisões de design relevantes
+      - O que poderia ser melhorado
+
+  - name: test
+    description: Gera testes pytest completos
+    prompt: |
+      Escreve testes pytest completos para este código.
+      - Usa fixtures quando adequado
+      - Cobre: None, vazio, valor inválido, excepções esperadas
+      - Usa @pytest.mark.parametrize para variantes de input
+      - Nomes descritivos: test_funcao_quando_condicao_entao_resultado
+      - Inclui pelo menos um teste de integração se aplicável
+      Escreve TODOS os testes sem truncar.
+
+  - name: refactor
+    description: Refactora mantendo comportamento, melhorando estrutura
+    prompt: |
+      Refactora este código mantendo exactamente o mesmo comportamento.
+      Aplica:
+      - Single Responsibility: uma função, uma responsabilidade
+      - DRY: elimina duplicação
+      - Type hints em todas as funções
+      - Nomes descritivos sem abreviaturas
+      - Substitui comentários óbvios por código auto-explicativo
+      Escreve o código COMPLETO refactorado.
+
+  - name: html
+    description: Cria componente HTML/CSS production-ready de alta qualidade
+    prompt: |
+      Cria um componente HTML/CSS production-ready completo.
+      OBRIGATÓRIO:
+      - :root com todos os design tokens como CSS custom properties
+      - Mobile-first com min-width media queries
+      - HTML semântico com atributos aria
+      - Google Fonts distinctiva (nunca Arial/Roboto/system-ui)
+      - Animações com CSS transitions ou @keyframes
+      - Design memorável, não genérico
+      Escreve HTML, CSS e JS num único ficheiro completo.
+
+  - name: scaffold
+    description: Cria estrutura completa de projecto com todos os ficheiros
+    prompt: |
+      Cria a estrutura completa deste projecto.
+      - Usa o MCP de filesystem para criar TODAS as pastas e ficheiros
+      - Inclui: requirements.txt, .gitignore, README.md, .env.example
+      - Ficheiros de código com estrutura correcta e type hints
+      - Não pedes confirmação a cada ficheiro — cria tudo de seguida
+      - No final, mostra uma árvore do que foi criado
